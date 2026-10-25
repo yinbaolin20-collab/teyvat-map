@@ -156,6 +156,7 @@ button { cursor: pointer; }
   position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: var(--faint);
   pointer-events: none; text-shadow: 0 1px 2px #000;
 }
+.map-note-mobile { display: none; }
 .map-float {
   position: absolute; right: 10px; bottom: 10px; max-width: 60%;
   background: rgba(18, 26, 45, .9); border: 1px solid var(--line); border-radius: 8px;
@@ -468,6 +469,10 @@ button { cursor: pointer; }
   .legend { font-size: 11px; gap: 2px 8px; }
   .legend .hint { display: none; }
   .map-note { display: none; }
+  .map-note.map-note-mobile { display: block; left: 12px; bottom: 6px; }
+  .map-float { right: 6px; bottom: 6px; max-width: 45%; padding: 2px 4px; background: transparent; border: 0; }
+  .map-float .nc-label { display: none; }
+  .map-float .chip { font-size: 11px; margin: 0; }
 
   .side {
     position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 40;
@@ -545,6 +550,7 @@ button { cursor: pointer; }
     <div class="pane-body">
       <svg id="mapSvg" class="stage"></svg>
       <div class="map-note">示意图 · 位置只表示大致方位 · 滚轮缩放、拖动平移</div>
+      <div class="map-note map-note-mobile">两根手指放大，就能看到地名</div>
       <div class="map-float" id="mapNoCoord" hidden></div>
     </div>
   </section>
@@ -1777,7 +1783,7 @@ window.GENSHIN_STORY = "# 原神主线剧情详细梳理\n\nOct 25, 2026 · @BAO
       }
       const box = $('#mapNoCoord');
       box.hidden = !noCoord.length;
-      box.innerHTML = noCoord.length ? `没有具体坐标的地点：${noCoord.map(locChip).join('')}` : '';
+      box.innerHTML = noCoord.length ? `<span class="nc-label">没有具体坐标的地点：</span>${noCoord.map(locChip).join('')}` : '';
       applyMapScale();
     }
     function applyMapScale() {
@@ -1826,6 +1832,8 @@ window.GENSHIN_STORY = "# 原神主线剧情详细梳理\n\nOct 25, 2026 · @BAO
         g.setAttribute('transform', `translate(${pick.x},${pick.y})`);
         boxes.push(pick.box);
       }
+      // 手机这种窄屏上看全图时，只显示国家名和地点圆点；放大到一定程度后才显示地名（选中、高亮的地点始终显示）
+      const compact = mapSvg.getBoundingClientRect().width < 560 && mapZoom.z.k / mapZoom.z.k0 < 1.8;
       const CANDS = [[13, 4, 'start'], [-13, 4, 'end'], [0, -14, 'middle'], [0, 23, 'middle'], [10, -9, 'start'], [10, 18, 'start'], [-10, -9, 'end'], [-10, 18, 'end']];
       const order = markers.slice().sort((a, b) => (b.__ev || 0) - (a.__ev || 0));
       for (const g of order) {
@@ -1841,7 +1849,8 @@ window.GENSHIN_STORY = "# 原神主线剧情详细梳理\n\nOct 25, 2026 · @BAO
         t.setAttribute('text-anchor', pick.anchor);
         // 实在放不下（会和别的字大片重叠）的地名先藏起来，放大地图后自然会出现；被选中或高亮的始终显示
         const b = pick.box, area = (b.x1 - b.x0) * (b.y1 - b.y0);
-        const crowded = overlap(b) > area * 0.3 && !g.classList.contains('hl') && !g.classList.contains('sel');
+        const keep = g.classList.contains('hl') || g.classList.contains('sel');
+        const crowded = !keep && (compact || overlap(b) > area * 0.3);
         t.style.visibility = crowded ? 'hidden' : '';
         if (!crowded) boxes.push(b);
       }
