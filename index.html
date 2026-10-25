@@ -1,0 +1,3002 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>提瓦特世界观地图</title>
+<style>
+/* 提瓦特世界观地图 —— 页面样式 */
+
+:root {
+  --bg: #0b1120;
+  --panel: #121a2d;
+  --panel-2: #18223a;
+  --panel-3: #1f2b48;
+  --line: #2a3756;
+  --line-soft: #222d48;
+  --text: #e8ecf6;
+  --muted: #95a1bd;
+  --faint: #66728f;
+  --accent: #f1cf7a;
+  --accent-ink: #2a2110;
+  --danger: #ef6b6b;
+  --ok: #5fd3a9;
+  --radius: 10px;
+  --font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 10px 18px;
+  background: linear-gradient(180deg, #141e36, #10182b);
+  border-bottom: 1px solid var(--line);
+  position: relative; z-index: 20;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-mark { color: var(--accent); font-size: 22px; line-height: 1; }
+.brand h1 { margin: 0; font-size: 18px; letter-spacing: 1px; font-weight: 700; }
+.brand .sub { margin: 0; font-size: 12px; color: var(--muted); }
+
+.progress-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel-2); border: 1px solid var(--line);
+  padding: 5px 8px 5px 12px; border-radius: 999px;
+}
+.progress-box label { color: var(--accent); font-weight: 700; white-space: nowrap; }
+.progress-box select {
+  max-width: 340px; background: var(--panel-3); border: 1px solid var(--line);
+  border-radius: 999px; padding: 4px 10px;
+}
+.spoiler-badge {
+  font-size: 12px; color: var(--ok); white-space: nowrap;
+  border: 1px solid rgba(95, 211, 169, .4); border-radius: 999px; padding: 1px 8px;
+}
+
+.search-box { position: relative; flex: 1 1 200px; max-width: 320px; }
+.search-box input {
+  width: 100%; background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 14px; outline: none;
+}
+.search-box input:focus { border-color: var(--accent); }
+.search-results {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .45); overflow: hidden; max-height: 60vh; overflow-y: auto;
+}
+.search-results button {
+  display: flex; width: 100%; gap: 8px; align-items: center; text-align: left;
+  background: none; border: 0; padding: 8px 12px; border-bottom: 1px solid var(--line-soft);
+}
+.search-results button:hover, .search-results button.active { background: var(--panel-3); }
+.search-results .kind { font-size: 12px; color: var(--muted); margin-left: auto; }
+.search-results .empty { padding: 10px 12px; color: var(--muted); }
+
+.top-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { background: var(--panel-2); border: 0; padding: 5px 10px; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.btn {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+
+/* ---------- 主体布局 ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 380px;
+  gap: 10px; padding: 10px;
+  height: calc(100vh - 64px);
+}
+.layout-map { grid-template-columns: minmax(0, 1fr) 380px; }
+.layout-map #graphPane { display: none; }
+.layout-graph { grid-template-columns: minmax(0, 1fr) 380px; }
+.layout-graph #mapPane { display: none; }
+
+.pane, .side {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+}
+.pane-head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--panel-2);
+}
+.pane-head h2 { margin: 0 6px 0 2px; font-size: 15px; }
+.pane-head select {
+  background: var(--panel-3); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; max-width: 150px;
+}
+.check { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.check input { accent-color: var(--accent); }
+
+.zoom-btns { margin-left: auto; display: inline-flex; gap: 4px; }
+.zoom-btns button {
+  background: var(--panel-3); border: 1px solid var(--line); border-radius: 6px;
+  min-width: 30px; height: 28px; padding: 0 8px;
+}
+.zoom-btns button:hover { border-color: var(--accent); }
+
+.layer-toggles { display: inline-flex; gap: 4px; }
+.layer-toggles button {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--panel-3); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px;
+  color: var(--faint); font-size: 13px;
+}
+.layer-toggles button.on { color: var(--text); border-color: #4b5d88; }
+.lg { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.lg-surface { background: #e9e2c8; border: 1.5px solid #fff; }
+.lg-sky { background: #bff2ff; box-shadow: 0 0 6px #7fe3ff; transform: rotate(45deg); border-radius: 2px; }
+.lg-underground { background: #24123f; border: 1.5px dashed #b88cff; }
+.layer-toggles button:not(.on) .lg { opacity: .3; }
+
+.pane-body { position: relative; flex: 1; min-height: 0; }
+.stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; user-select: none; cursor: grab; }
+.stage.dragging { cursor: grabbing; }
+
+#mapSvg { background: radial-gradient(ellipse at 50% 45%, #13284a 0%, #0c1830 55%, #08101f 100%); }
+#graphSvg { background: radial-gradient(ellipse at 50% 50%, #141f38 0%, #0d1528 70%); }
+
+.map-note {
+  position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: var(--faint);
+  pointer-events: none; text-shadow: 0 1px 2px #000;
+}
+.map-float {
+  position: absolute; right: 10px; bottom: 10px; max-width: 60%;
+  background: rgba(18, 26, 45, .9); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 8px; font-size: 12px; color: var(--muted);
+}
+.map-float .chip { margin: 3px 3px 0 0; }
+
+.legend {
+  position: absolute; left: 8px; bottom: 8px; right: 8px;
+  display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted);
+  pointer-events: none; text-shadow: 0 1px 2px #000;
+}
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend .hint { width: 100%; color: var(--accent); opacity: .8; }
+.legend .ln { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.legend .ln.dash { border-top-style: dashed; }
+.legend .shape { width: 10px; height: 10px; display: inline-block; background: #9aa6c2; }
+.legend .shape.c { border-radius: 50%; }
+.legend .shape.f { clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+.legend .shape.l { transform: rotate(45deg) scale(.8); }
+
+/* ---------- 地图元素 ---------- */
+.base-map { transition: opacity .3s, filter .3s; }
+.only-underground .base-map { filter: brightness(.42) saturate(.55); }
+.only-sky .base-map { opacity: .38; filter: blur(1px); }
+.nlabel text {
+  font-weight: 800; letter-spacing: 4px; paint-order: stroke; stroke: rgba(5, 10, 22, .8); stroke-width: 4px;
+  cursor: pointer; text-anchor: middle;
+}
+.nlabel .nsub { font-size: 11px; font-weight: 400; letter-spacing: 1px; fill: #c9d1e6; stroke-width: 3px; }
+.nlabel.unreached text { fill: #6d7894 !important; }
+.nlabel.unreached .nsub { fill: #6d7894; }
+
+.mk { cursor: pointer; }
+.mk .mlabel {
+  font-size: 12px; fill: #eef2fb; paint-order: stroke; stroke: rgba(5, 10, 22, .85); stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.mk.mk-sky .mlabel { fill: #c9f4ff; }
+.mk.mk-underground .mlabel { fill: #d9c2ff; }
+.mk .evring { fill: none; stroke: rgba(241, 207, 122, .55); stroke-width: 1.2; }
+.mk .selring { fill: none; stroke: var(--accent); stroke-width: 2.2; opacity: 0; }
+.mk .hlring { fill: none; stroke: #ffe9a8; stroke-width: 2; opacity: 0; }
+.mk:hover .mlabel { fill: var(--accent); }
+.has-hl .mk:not(.hl):not(.sel) { opacity: .28; }
+.has-hl .nlabel:not(.hl):not(.sel) { opacity: .45; }
+.mk.hl .hlring { opacity: 1; }
+.mk.sel .selring { opacity: 1; animation: pulse 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.mk.sel .mlabel, .mk.hl .mlabel { fill: var(--accent); font-weight: 700; }
+.nlabel.sel text:first-child { text-decoration: underline; }
+@keyframes pulse {
+  0% { transform: scale(.8); opacity: 1; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+/* ---------- 关系图元素 ---------- */
+.edge { fill: none; stroke-width: 1.4; opacity: .55; }
+.edge.member { stroke: #7a86a6; stroke-dasharray: 4 4; opacity: .3; stroke-width: 1; }
+.edge-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; }
+.arrow { opacity: .75; }
+.edge.hov { opacity: 1 !important; stroke-width: 2.4; }
+.arrow.hov { opacity: 1 !important; }
+.elabel { display: none; pointer-events: none; }
+.elabel.show { display: inline; }
+.elabel text {
+  font-size: 11px; text-anchor: middle; dominant-baseline: middle; fill: #eef2fb;
+  paint-order: stroke; stroke: rgba(10, 16, 32, .95); stroke-width: 4px; stroke-linejoin: round;
+}
+.halo { pointer-events: none; }
+.halo-label text {
+  font-size: 20px; font-weight: 800; letter-spacing: 3px; text-anchor: middle; opacity: .55;
+  paint-order: stroke; stroke: rgba(8, 13, 27, .8); stroke-width: 3px;
+}
+.has-hl .halo { opacity: .45; }
+.node { cursor: pointer; }
+.node text {
+  font-size: 12px; fill: #eef2fb; text-anchor: middle; paint-order: stroke;
+  stroke: rgba(8, 13, 27, .9); stroke-width: 3px; stroke-linejoin: round;
+}
+.node.kind-fac text { fill: #ffe7a6; font-weight: 700; }
+.node.kind-loc text { fill: #bfe8ff; }
+.node .nshape { stroke: rgba(255, 255, 255, .85); stroke-width: 1.4; }
+.node.kind-fac .nshape { stroke-width: 2; }
+.node .selring { fill: none; stroke: var(--accent); stroke-width: 2.5; opacity: 0; }
+.node.extra { opacity: .6; }
+.node:hover text { fill: var(--accent); }
+.has-hl .node:not(.hl):not(.sel) { opacity: .14; }
+.has-hl .edge:not(.hl), .has-hl .arrow:not(.hl) { opacity: .06; }
+.has-hl .elabel:not(.hl) { opacity: .25; }
+.has-hl .edge.hl { opacity: 1; stroke-width: 2.2; }
+.node.sel .selring { opacity: 1; }
+.node.sel text, .node.hl text { font-weight: 700; }
+.graph-empty { fill: var(--muted); font-size: 14px; text-anchor: middle; }
+
+/* ---------- 侧栏 ---------- */
+.tabs { display: flex; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+.tabs button {
+  flex: 1; background: none; border: 0; padding: 10px 6px; color: var(--muted);
+  border-bottom: 2px solid transparent; font-weight: 600;
+}
+.tabs button.on { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-body { flex: 1; overflow-y: auto; padding: 14px; min-height: 0; }
+
+.sel-bar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.sel-bar .btn { padding: 2px 10px; font-size: 12px; }
+.d-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.d-head h3 { margin: 0; font-size: 20px; }
+.d-dot { width: 14px; height: 14px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(255, 255, 255, .15); }
+.tag {
+  display: inline-block; font-size: 12px; padding: 0 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted); background: var(--panel-2); white-space: nowrap;
+}
+.tag.warn { color: #ffcf8a; border-color: rgba(255, 207, 138, .4); }
+.tag.sky { color: #bff2ff; border-color: rgba(127, 227, 255, .45); }
+.tag.underground { color: #d6bdff; border-color: rgba(184, 140, 255, .5); }
+.d-aliases { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+.d-summary { margin: 10px 0 4px; font-size: 15px; }
+.d-note { color: var(--muted); font-size: 13px; }
+.side h4 {
+  margin: 18px 0 8px; font-size: 13px; color: var(--accent); letter-spacing: 1px;
+  border-bottom: 1px solid var(--line-soft); padding-bottom: 4px;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--panel-3); border: 1px solid var(--line); border-radius: 999px;
+  padding: 1px 10px 1px 7px; font-size: 13px; line-height: 1.6;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.chip.fac i { border-radius: 2px; }
+.chip.loc i { transform: rotate(45deg); border-radius: 1px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.empty-note { color: var(--faint); font-size: 13px; }
+
+.secret {
+  background: rgba(241, 207, 122, .08); border: 1px solid rgba(241, 207, 122, .3);
+  border-radius: 8px; padding: 6px 10px; margin-bottom: 6px;
+}
+.secret small { display: block; color: var(--muted); font-size: 12px; }
+
+.rel-list { list-style: none; margin: 0; padding: 0; }
+.rel-list li { display: flex; align-items: flex-start; gap: 6px; padding: 4px 0; border-bottom: 1px dashed var(--line-soft); }
+.rel-list .dir { color: var(--faint); width: 14px; flex: none; text-align: center; }
+.rel-list .rl { color: var(--muted); font-size: 13px; }
+.rel-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 8px; flex: none; }
+
+.ev {
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; background: var(--panel-2);
+}
+.ev-act { font-size: 12px; color: var(--accent); }
+.ev-sum { margin: 2px 0 6px; }
+.ev-open { background: none; border: 0; padding: 0; text-align: left; width: 100%; }
+.ev-open:hover .ev-sum { color: var(--accent); }
+.ev .chips { gap: 4px; }
+.ev .chip { font-size: 12px; }
+
+.ev-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 16px; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; text-align: center; }
+.stat b { display: block; font-size: 20px; color: var(--accent); }
+.stat span { font-size: 12px; color: var(--muted); }
+.tips { padding-left: 18px; color: var(--muted); }
+.tips li { margin-bottom: 4px; }
+
+/* 时间轴 */
+.tl-chapter { margin-bottom: 16px; }
+.tl-chapter > h4 { margin-top: 0; }
+.tl-act { position: relative; padding: 0 0 10px 18px; border-left: 2px solid var(--line); margin-left: 6px; }
+.tl-act::before {
+  content: ""; position: absolute; left: -7px; top: 4px; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--panel); border: 2px solid var(--muted);
+}
+.tl-act.current::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.tl-act-head { font-weight: 700; }
+.tl-act-head .ver { font-weight: 400; color: var(--faint); font-size: 12px; margin-left: 4px; }
+.tl-act.current .tl-act-head { color: var(--accent); }
+.tl-more {
+  margin-left: 6px; background: none; border: 1px solid var(--line); border-radius: 999px;
+  padding: 0 8px; font-size: 12px; font-weight: 400; color: var(--muted); vertical-align: middle;
+}
+.tl-more:hover { color: var(--accent); border-color: var(--accent); }
+
+/* 详细剧情 */
+.story {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px;
+  font-size: 14.5px; line-height: 1.85; color: #dde3f1;
+}
+.story-title { color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+.story p { margin: 8px 0; }
+.story ul, .story ol { margin: 8px 0; padding-left: 20px; }
+.story li { margin-bottom: 4px; }
+.story b { color: #fff; }
+.story h5 { margin: 12px 0 4px; font-size: 14px; color: var(--accent); }
+.story table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; line-height: 1.5; }
+.story th, .story td { border: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
+.story th { background: var(--panel-3); }
+.story-src { margin-top: 12px !important; }
+.tl-ev {
+  display: block; width: 100%; text-align: left; margin-top: 6px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px;
+}
+.tl-ev:hover { border-color: var(--accent); }
+.tl-ev.sel { border-color: var(--accent); background: rgba(241, 207, 122, .1); }
+.tl-ev small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.tl-locked {
+  border: 1px dashed var(--line); border-radius: 8px; padding: 10px; color: var(--muted); text-align: center;
+}
+
+/* 神之心 */
+.gn-summary { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+.gn-summary b { color: var(--accent); }
+.gn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+.gn-row span { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.gn-mini {
+  width: 14px; height: 14px; transform: rotate(45deg); border-radius: 2px; display: inline-block;
+  border: 2px solid var(--gc, #888); background: transparent;
+}
+.gn-mini.taken { background: var(--gc, #888); box-shadow: 0 0 8px var(--gc, #888); }
+.gn-mini.lost { border-style: dashed; opacity: .7; }
+.gn-card {
+  border: 1px solid var(--line); border-left: 4px solid var(--gc, #888); border-radius: 8px;
+  padding: 10px 12px; margin-bottom: 10px; background: linear-gradient(90deg, color-mix(in srgb, var(--gc, #888) 12%, transparent), transparent 60%);
+}
+.gn-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; }
+.gn-gem {
+  width: 16px; height: 16px; transform: rotate(45deg); border-radius: 3px;
+  background: var(--gc, #888); box-shadow: 0 0 8px var(--gc, #888);
+}
+.gn-now { margin: 6px 0 4px; }
+.gn-now b { color: var(--gc, var(--accent)); }
+.gn-path { list-style: none; margin: 6px 0 0; padding: 0; }
+.gn-path li { position: relative; padding: 2px 0 6px 20px; }
+.gn-path li::before { content: "↓"; position: absolute; left: 4px; top: 1px; color: var(--faint); }
+.gn-path li:first-child::before { content: "●"; font-size: 10px; top: 5px; color: var(--gc, #888); }
+.gn-path small { display: block; color: var(--muted); font-size: 12px; }
+
+/* 弹窗 */
+.modal {
+  position: fixed; inset: 0; background: rgba(3, 6, 14, .7); z-index: 50;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-card {
+  position: relative; width: min(720px, 100%); max-height: 88vh; overflow-y: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px;
+}
+.modal-card h2 { margin: 0 0 8px; }
+.modal-card h3 { color: var(--accent); font-size: 15px; margin: 18px 0 6px; }
+.modal-card p, .modal-card li { color: #cfd6e8; }
+.wide-select {
+  width: 100%; background: var(--panel-3); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+.modal-close {
+  position: absolute; right: 12px; top: 10px; background: none; border: 0; font-size: 24px; color: var(--muted);
+}
+.warn-box {
+  background: rgba(239, 107, 107, .1); border: 1px solid rgba(239, 107, 107, .4); border-radius: 8px; padding: 8px 12px;
+}
+.warn-box li { color: #ffc1c1; }
+
+.load-error {
+  position: fixed; inset: 0; z-index: 60; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.load-error .modal-card { max-width: 640px; }
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 1280px) {
+  .layout, .layout-map, .layout-graph {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-auto-rows: auto;
+    height: auto; align-items: start;
+  }
+  .layout-both #mapPane { grid-column: 1; grid-row: 1; }
+  .layout-both #graphPane { grid-column: 1; grid-row: 2; }
+  .side { grid-column: 2; grid-row: 1 / span 2; height: calc(100vh - 20px); position: sticky; top: 10px; }
+  .pane { height: max(420px, calc(100vh - 90px)); }
+  .layout-both .pane { height: max(420px, 72vh); }
+}
+/* 手机：顶栏紧凑，地图和关系图上下排，详情变成从底部拉起的面板 */
+.sheet-handle { display: none; }
+@media (max-width: 820px) {
+  .topbar {
+    gap: 8px; padding-block: 8px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .brand h1 { font-size: 16px; }
+  .brand .sub { display: none; }
+  .progress-box { width: 100%; padding-left: 10px; }
+  .progress-box select { flex: 1; max-width: none; min-width: 0; font-size: 13px; }
+  .spoiler-badge { display: none; }
+  .search-box { max-width: none; flex: 1 1 100%; order: 3; }
+  .top-actions { margin-left: 0; width: 100%; justify-content: space-between; }
+  .seg button { padding: 5px 8px; font-size: 13px; }
+  .layout, .layout-map, .layout-graph {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: 10px; padding-bottom: 130px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .layout-both #mapPane, .layout-both #graphPane { grid-column: 1; grid-row: auto; }
+  .pane, .layout-both .pane { height: 68vh; }
+  .layout-both #mapPane { height: min(68vh, calc((100vw - 32px) * 0.68 + 120px)); }
+  .pane-head { gap: 6px; }
+  .pane-head select { max-width: 120px; }
+  .legend { font-size: 11px; gap: 2px 8px; }
+  .legend .hint { display: none; }
+  .map-note { display: none; }
+
+  .side {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 40;
+    height: 50vh; max-height: none;
+    border-radius: 16px 16px 0 0; border-bottom: 0;
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, .55);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transition: height .25s ease;
+  }
+  .side[data-sheet="peek"] { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .side[data-sheet="half"] { height: 52vh; }
+  .side[data-sheet="full"] { height: 88vh; }
+  .sheet-handle {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: var(--panel-2); border: 0; padding: 6px 0 4px; font-size: 11px; color: var(--faint);
+  }
+  .sheet-handle span { width: 40px; height: 4px; border-radius: 2px; background: var(--muted); }
+  .tab-body { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .modal { padding: 12px; }
+  .modal-card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .side { transition: none; }
+  .mk.sel .selring { animation: none; }
+}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">✦</span>
+    <div>
+      <h1>提瓦特世界观地图</h1>
+      <p class="sub" id="dataInfo"></p>
+    </div>
+  </div>
+
+  <div class="progress-box">
+    <label for="progressSelect">我玩到了</label>
+    <select id="progressSelect"></select>
+    <span class="spoiler-badge" title="之后剧情里的人物、事件、关系和秘密都已隐藏">🛡 防剧透中</span>
+  </div>
+
+  <div class="search-box">
+    <input id="searchInput" type="search" placeholder="搜索人物、地点、势力…" autocomplete="off">
+    <div id="searchResults" class="search-results" hidden></div>
+  </div>
+
+  <div class="top-actions">
+    <div class="seg" id="layoutSeg" role="group" aria-label="版面">
+      <button data-layout="both" class="on">并排</button>
+      <button data-layout="map">只看地图</button>
+      <button data-layout="graph">只看关系图</button>
+    </div>
+    <button id="helpBtn" class="btn">使用说明</button>
+  </div>
+</header>
+
+<main id="main" class="layout layout-both">
+  <section class="pane" id="mapPane">
+    <div class="pane-head">
+      <h2>地图</h2>
+      <div class="layer-toggles" id="layerToggles">
+        <button data-layer="surface" class="on"><i class="lg lg-surface"></i>地表</button>
+        <button data-layer="sky" class="on"><i class="lg lg-sky"></i>天空</button>
+        <button data-layer="underground" class="on"><i class="lg lg-underground"></i>地下</button>
+      </div>
+      <div class="zoom-btns" data-for="map">
+        <button data-zoom="in" title="放大">＋</button>
+        <button data-zoom="out" title="缩小">－</button>
+        <button data-zoom="reset" title="回到全图">复位</button>
+      </div>
+    </div>
+    <div class="pane-body">
+      <svg id="mapSvg" class="stage"></svg>
+      <div class="map-note">示意图 · 位置只表示大致方位 · 滚轮缩放、拖动平移</div>
+      <div class="map-float" id="mapNoCoord" hidden></div>
+    </div>
+  </section>
+
+  <section class="pane" id="graphPane">
+    <div class="pane-head">
+      <h2>人物关系</h2>
+      <select id="nationFilter" title="按国家筛选"></select>
+      <select id="factionFilter" title="按势力筛选"></select>
+      <label class="check"><input type="checkbox" id="neighborToggle" checked>带上有关系的人</label>
+      <label class="check"><input type="checkbox" id="isolatedToggle">隐藏没关系的人</label>
+      <label class="check"><input type="checkbox" id="edgeLabelToggle">常显全部关系说明</label>
+      <div class="zoom-btns" data-for="graph">
+        <button data-zoom="in" title="放大">＋</button>
+        <button data-zoom="out" title="缩小">－</button>
+        <button data-zoom="reset" title="回到全图">复位</button>
+      </div>
+    </div>
+    <div class="pane-body">
+      <svg id="graphSvg" class="stage"></svg>
+      <div class="legend" id="graphLegend"></div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <button class="sheet-handle" id="sheetHandle" title="展开或收起"><span></span>点这里展开 / 收起</button>
+    <nav class="tabs" id="tabs">
+      <button data-tab="detail" class="on">详情</button>
+      <button data-tab="timeline">剧情时间轴</button>
+      <button data-tab="gnosis">神之心</button>
+    </nav>
+    <div class="tab-body" id="tab-detail"></div>
+    <div class="tab-body" id="tab-timeline" hidden></div>
+    <div class="tab-body" id="tab-gnosis" hidden></div>
+  </aside>
+</main>
+
+<div id="helpModal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <button class="modal-close" data-close title="关闭">×</button>
+    <h2 id="helpTitle">使用说明</h2>
+    <div id="helpBody"></div>
+  </div>
+</div>
+
+<div id="loadError" class="load-error" hidden></div>
+
+<script>window.TEYVAT_PUBLISHED = true;</script>
+<script>
+/* Auto-generated by the update-data script. Do not edit this file directly. */
+window.GENSHIN_DATA = {
+  "meta": {
+    "title": "原神世界观地图数据",
+    "as_of": "2026-10-25",
+    "covers_up_to": "第七章第四幕「往冥府的安魂歌」（7.1）",
+    "player_progress": "ch4-5",
+    "notes": [
+      "所有剧情相关条目都带 reveal_at（幕 id），程序可以按 player_progress 隐藏还没玩到的内容，实现防剧透。",
+      "幕的先后以 acts 列表里的 order 为准，比较 reveal_at 时用 order 比大小。",
+      "地图坐标是示意坐标：x 从左到右、y 从上到下，取值 0 到 1，只表示大致方位，需要按实际底图微调。",
+      "layer 表示图层：surface 地表、sky 天空、underground 地下。",
+      "source 字段：game 表示依据游戏剧情整理，recap 表示部分细节来自官方公告和玩家梳理（6.x 后半段与至冬篇），以游戏为准。"
+    ]
+  },
+
+  "acts": [
+    {"id": "prologue-1", "order": 1, "chapter": "prologue", "title": "捕风的异乡人", "version": "1.0", "source": "game"},
+    {"id": "prologue-2", "order": 2, "chapter": "prologue", "title": "为了没有眼泪的明天", "version": "1.0", "source": "game"},
+    {"id": "prologue-3", "order": 3, "chapter": "prologue", "title": "巨龙与自由之歌", "version": "1.0", "source": "game"},
+    {"id": "ch1-1", "order": 4, "chapter": "ch1", "title": "浮世浮生千岩间", "version": "1.x", "source": "game"},
+    {"id": "ch1-2", "order": 5, "chapter": "ch1", "title": "辞行久远之躯", "version": "1.x", "source": "game"},
+    {"id": "ch1-3", "order": 6, "chapter": "ch1", "title": "迫近的客星", "version": "1.x", "source": "game"},
+    {"id": "ch1-4", "order": 7, "chapter": "ch1", "title": "我们终将重逢", "version": "1.x", "source": "game"},
+    {"id": "interlude-1", "order": 8, "chapter": "interlude", "title": "风起鹤归", "version": "2.4", "source": "game"},
+    {"id": "ch2-0", "order": 9, "chapter": "ch2", "title": "振袖秋风问红叶", "version": "2.x", "source": "game"},
+    {"id": "ch2-1", "order": 10, "chapter": "ch2", "title": "不动鸣神，恒常乐土", "version": "2.x", "source": "game"},
+    {"id": "ch2-2", "order": 11, "chapter": "ch2", "title": "无念无想，泡影断灭", "version": "2.x", "source": "game"},
+    {"id": "ch2-3", "order": 12, "chapter": "ch2", "title": "千手百眼，天下人间", "version": "2.x", "source": "game"},
+    {"id": "ch2-4", "order": 13, "chapter": "ch2", "title": "回响渊底的安魂曲", "version": "2.x", "source": "game"},
+    {"id": "interlude-2", "order": 14, "chapter": "interlude", "title": "危途疑踪", "version": "2.7", "source": "game"},
+    {"id": "ch3-1", "order": 15, "chapter": "ch3", "title": "穿越烟帷与暗林", "version": "3.x", "source": "game"},
+    {"id": "ch3-2", "order": 16, "chapter": "ch3", "title": "千朵玫瑰带来的黎明", "version": "3.x", "source": "game"},
+    {"id": "ch3-3", "order": 17, "chapter": "ch3", "title": "迷梦与空幻与欺骗", "version": "3.x", "source": "game"},
+    {"id": "ch3-4", "order": 18, "chapter": "ch3", "title": "赤土之王与三朝圣者", "version": "3.x", "source": "game"},
+    {"id": "ch3-5", "order": 19, "chapter": "ch3", "title": "虚空鼓动，劫火高扬", "version": "3.x", "source": "game"},
+    {"id": "interlude-3", "order": 20, "chapter": "interlude", "title": "倾落伽蓝", "version": "3.3", "source": "game"},
+    {"id": "ch3-6", "order": 21, "chapter": "ch3", "title": "卡利贝尔", "version": "3.x", "source": "game"},
+    {"id": "ch4-1", "order": 22, "chapter": "ch4", "title": "白露与黑潮的序诗", "version": "4.x", "source": "game"},
+    {"id": "ch4-2", "order": 23, "chapter": "ch4", "title": "仿若无因飘落的轻雨", "version": "4.x", "source": "game"},
+    {"id": "ch4-3", "order": 24, "chapter": "ch4", "title": "向深水中的晨星", "version": "4.x", "source": "game"},
+    {"id": "ch4-4", "order": 25, "chapter": "ch4", "title": "谕示胎动的终焉之刻", "version": "4.x", "source": "game"},
+    {"id": "ch4-5", "order": 26, "chapter": "ch4", "title": "罪人舞步旋", "version": "4.x", "source": "game"},
+    {"id": "ch4-6", "order": 27, "chapter": "ch4", "title": "睡前故事", "version": "4.x", "source": "game"},
+    {"id": "ch5-1", "order": 28, "chapter": "ch5", "title": "荣花与炎日之途", "version": "5.0", "source": "game"},
+    {"id": "ch5-2", "order": 29, "chapter": "ch5", "title": "黑石湮落白石下", "version": "5.0", "source": "game"},
+    {"id": "ch5-3", "order": 30, "chapter": "ch5", "title": "镜与谜烟的彼方", "version": "5.1", "source": "game"},
+    {"id": "ch5-4", "order": 31, "chapter": "ch5", "title": "命定将焚的虹光", "version": "5.2", "source": "game"},
+    {"id": "ch5-interlude", "order": 32, "chapter": "ch5", "title": "万火归一", "version": "5.x", "source": "game"},
+    {"id": "ch5-5", "order": 33, "chapter": "ch5", "title": "炽烈的还魂诗", "version": "5.3", "source": "game"},
+    {"id": "interlude-4", "order": 34, "chapter": "interlude", "title": "悖理", "version": "5.6", "source": "game"},
+    {"id": "ch5-6", "order": 35, "chapter": "ch5", "title": "你存在的时空", "version": "5.7", "source": "recap"},
+    {"id": "ch6-0", "order": 36, "chapter": "ch6", "title": "归途", "version": "5.8", "source": "recap"},
+    {"id": "ch6-1", "order": 37, "chapter": "ch6", "title": "雪浪与苍林之舞", "version": "6.0", "source": "recap"},
+    {"id": "ch6-2", "order": 38, "chapter": "ch6", "title": "尘与灯的挽歌", "version": "6.0", "source": "recap"},
+    {"id": "ch6-3", "order": 39, "chapter": "ch6", "title": "不存在的国土", "version": "6.1", "source": "recap"},
+    {"id": "ch6-4", "order": 40, "chapter": "ch6", "title": "回望湮灭的月光", "version": "6.1", "source": "recap"},
+    {"id": "ch6-5", "order": 41, "chapter": "ch6", "title": "终北的夜行诗", "version": "6.2", "source": "recap"},
+    {"id": "ch6-6", "order": 42, "chapter": "ch6", "title": "散于晨雾的月芒", "version": "6.2", "source": "recap"},
+    {"id": "ch6-7", "order": 43, "chapter": "ch6", "title": "如果在冬夜，一个旅人", "version": "6.3", "source": "recap"},
+    {"id": "ch6-8", "order": 44, "chapter": "ch6", "title": "真实之月", "version": "6.3", "source": "recap"},
+    {"id": "ch6-9", "order": 45, "chapter": "ch6", "title": "身土坏空，五蕴识转", "version": "6.6", "source": "recap"},
+    {"id": "ch6-10", "order": 46, "chapter": "ch6", "title": "道成千壑，因果异灭", "version": "6.6", "source": "recap"},
+    {"id": "ch7-1", "order": 47, "chapter": "ch7", "title": "无神怜爱的雪国", "version": "7.0", "source": "recap"},
+    {"id": "ch7-2", "order": 48, "chapter": "ch7", "title": "死魂灵的夜曲", "version": "7.0", "source": "recap"},
+    {"id": "ch7-3", "order": 49, "chapter": "ch7", "title": "白夜似梦初醒", "version": "7.1", "source": "recap"},
+    {"id": "ch7-4", "order": 50, "chapter": "ch7", "title": "往冥府的安魂歌", "version": "7.1", "source": "recap"}
+  ],
+
+  "chapters": [
+    {"id": "prologue", "title": "序章·捕风的异乡人", "nation": "mondstadt"},
+    {"id": "ch1", "title": "第一章·辞行久远之躯", "nation": "liyue"},
+    {"id": "ch2", "title": "第二章·千手百眼，天下人间", "nation": "inazuma"},
+    {"id": "ch3", "title": "第三章·虚空劫灰往世书", "nation": "sumeru"},
+    {"id": "ch4", "title": "第四章·罪人舞步旋", "nation": "fontaine"},
+    {"id": "ch5", "title": "第五章·炽烈的还魂诗", "nation": "natlan"},
+    {"id": "ch6", "title": "第六章·空月之歌", "nation": "nod-krai"},
+    {"id": "ch7", "title": "第七章·无神怜爱的雪国", "nation": "snezhnaya"},
+    {"id": "interlude", "title": "间章", "nation": null}
+  ],
+
+  "nations": [
+    {
+      "id": "mondstadt", "name": "蒙德", "element": "风", "ideal": "自由", "archon": "venti", "chapter": "prologue",
+      "map": {"x": 0.62, "y": 0.30, "layer": "surface"},
+      "regions": [
+        {"id": "mondstadt-city", "name": "蒙德城", "map": {"x": 0.62, "y": 0.29}, "note": "西风骑士团所在地"},
+        {"id": "stormterror-lair", "name": "风龙废墟", "map": {"x": 0.56, "y": 0.24}, "note": "特瓦林的巢穴，序章决战地"},
+        {"id": "starsnatch-cliff", "name": "摘星崖", "map": {"x": 0.58, "y": 0.27}, "note": "温迪弹琴呼唤特瓦林"},
+        {"id": "windrise", "name": "风起地", "map": {"x": 0.63, "y": 0.33}, "note": "旅行者初遇温迪"},
+        {"id": "dragonspine", "name": "龙脊雪山", "map": {"x": 0.58, "y": 0.37}, "note": "黑龙杜林葬身之地"}
+      ]
+    },
+    {
+      "id": "liyue", "name": "璃月", "element": "岩", "ideal": "契约", "archon": "zhongli", "chapter": "ch1",
+      "map": {"x": 0.68, "y": 0.55, "layer": "surface"},
+      "regions": [
+        {"id": "liyue-harbor", "name": "璃月港", "map": {"x": 0.72, "y": 0.58}, "note": "请仙典仪、岩神「遇刺」"},
+        {"id": "jueyun-karst", "name": "绝云间", "map": {"x": 0.66, "y": 0.50}, "note": "仙人居所"},
+        {"id": "guyun-stone-forest", "name": "孤云阁", "map": {"x": 0.76, "y": 0.62}, "note": "漩涡魔神奥赛尔被封印处"},
+        {"id": "the-chasm", "name": "层岩巨渊", "map": {"x": 0.62, "y": 0.56}, "note": "深渊线、夜叉往事"},
+        {"id": "wangshu-inn", "name": "望舒客栈", "map": {"x": 0.65, "y": 0.47}, "note": "魈的驻地"}
+      ]
+    },
+    {
+      "id": "inazuma", "name": "稻妻", "element": "雷", "ideal": "永恒", "archon": "raiden-ei", "chapter": "ch2",
+      "map": {"x": 0.90, "y": 0.62, "layer": "surface"},
+      "regions": [
+        {"id": "ritou", "name": "离岛", "map": {"x": 0.87, "y": 0.60}, "note": "锁国时期唯一的对外港口"},
+        {"id": "inazuma-city", "name": "稻妻城", "map": {"x": 0.89, "y": 0.58}, "note": "社奉行、天守阁"},
+        {"id": "grand-narukami-shrine", "name": "鸣神大社", "map": {"x": 0.90, "y": 0.55}, "note": "八重神子"},
+        {"id": "watatsumi", "name": "海祇岛", "map": {"x": 0.95, "y": 0.70}, "note": "反抗军大本营"},
+        {"id": "tatarasuna", "name": "踏鞴砂", "map": {"x": 0.86, "y": 0.66}, "note": "散兵的过去"},
+        {"id": "plane-of-euthymia", "name": "一心净土", "map": {"x": 0.89, "y": 0.57}, "note": "影的冥想空间"}
+      ]
+    },
+    {
+      "id": "sumeru", "name": "须弥", "element": "草", "ideal": "智慧", "archon": "nahida", "chapter": "ch3",
+      "map": {"x": 0.42, "y": 0.56, "layer": "surface"},
+      "regions": [
+        {"id": "gandharva-ville", "name": "化城郭", "map": {"x": 0.48, "y": 0.56}, "note": "提纳里、柯莱"},
+        {"id": "sumeru-city", "name": "须弥城", "map": {"x": 0.44, "y": 0.52}, "note": "教令院、花神诞祭"},
+        {"id": "sanctuary-surasthana", "name": "净善宫", "map": {"x": 0.44, "y": 0.51}, "note": "纳西妲被软禁处"},
+        {"id": "sumeru-desert", "name": "沙漠（赤王陵一带）", "map": {"x": 0.33, "y": 0.58}, "note": "造神计划实验场、赤王遗产"},
+        {"id": "gurabad", "name": "居尔城废墟", "map": {"x": 0.30, "y": 0.62}, "note": "烧树篇舞台"}
+      ]
+    },
+    {
+      "id": "fontaine", "name": "枫丹", "element": "水", "ideal": "正义", "archon": "focalors", "chapter": "ch4",
+      "map": {"x": 0.27, "y": 0.40, "layer": "surface"},
+      "regions": [
+        {"id": "court-of-fontaine", "name": "枫丹廷", "map": {"x": 0.27, "y": 0.40}, "note": "枫丹首都"},
+        {"id": "opera-epiclese", "name": "欧庇克莱歌剧院", "map": {"x": 0.27, "y": 0.39}, "note": "审判与「罪人舞步旋」"},
+        {"id": "fortress-of-meropide", "name": "梅洛彼得堡", "map": {"x": 0.24, "y": 0.44}, "note": "海底监狱"}
+      ]
+    },
+    {
+      "id": "natlan", "name": "纳塔", "element": "火", "ideal": "战争", "archon": "mavuika", "chapter": "ch5",
+      "map": {"x": 0.36, "y": 0.80, "layer": "surface"},
+      "regions": [
+        {"id": "stadium-sacred-flame", "name": "圣火竞技场", "map": {"x": 0.37, "y": 0.78}, "note": "火神与队长之战"},
+        {"id": "night-kingdom", "name": "夜神之国", "map": {"x": 0.36, "y": 0.82, "layer": "underground"}, "note": "亡魂归处，地脉之中"},
+        {"id": "natlan-tribes", "name": "六大部族领地", "map": {"x": 0.33, "y": 0.79}, "note": "流泉之众、花翼之集、竞人族等"}
+      ]
+    },
+    {
+      "id": "nod-krai", "name": "挪德卡莱", "element": null, "ideal": null, "archon": null, "chapter": "ch6",
+      "parent": "snezhnaya",
+      "map": {"x": 0.57, "y": 0.16, "layer": "surface"},
+      "regions": [
+        {"id": "nasha-town", "name": "那夏镇", "map": {"x": 0.57, "y": 0.17}, "note": "挪德卡莱的主要城镇"},
+        {"id": "frostmoon-enclave", "name": "霜月之坊", "map": {"x": 0.55, "y": 0.15}, "note": "霜月之子聚居地"},
+        {"id": "hiisi-island", "name": "希汐岛", "map": {"x": 0.53, "y": 0.19}, "note": "飞船相关记忆"},
+        {"id": "silver-moon-court", "name": "银月之庭", "map": {"x": 0.58, "y": 0.14}, "note": "哥伦比娅所在"}
+      ]
+    },
+    {
+      "id": "snezhnaya", "name": "至冬", "element": "冰", "ideal": "爱", "archon": "tsaritsa", "chapter": "ch7",
+      "map": {"x": 0.76, "y": 0.10, "layer": "surface"},
+      "regions": [
+        {"id": "zapolyarny", "name": "至冬堡", "map": {"x": 0.77, "y": 0.10}, "note": "首都，愚人众总部"},
+        {"id": "zapolyarny-palace", "name": "至冬宫", "map": {"x": 0.78, "y": 0.09}, "note": "冰之女皇居所"},
+        {"id": "korolevsky-theater", "name": "科洛列夫茨基剧院", "map": {"x": 0.76, "y": 0.11}, "note": "剧院死亡事件"}
+      ]
+    }
+  ],
+
+  "special_locations": [
+    {"id": "celestia", "name": "天空岛", "map": {"x": 0.50, "y": 0.40, "layer": "sky"}, "note": "天理所在，悬浮在大陆上空", "reveal_at": "prologue-1"},
+    {"id": "khaenriah", "name": "坎瑞亚", "map": {"x": 0.50, "y": 0.50, "layer": "underground"}, "note": "500 年前覆灭的地下无神之国", "reveal_at": "ch1-4"},
+    {"id": "the-abyss", "name": "深渊", "map": {"x": 0.50, "y": 0.55, "layer": "underground"}, "note": "深渊教团的力量来源", "reveal_at": "ch1-4"},
+    {"id": "irminsul", "name": "世界树", "map": {"x": 0.43, "y": 0.53, "layer": "underground"}, "note": "记录提瓦特一切历史的系统，入口在须弥", "reveal_at": "ch3-5"},
+    {"id": "celestial-nails", "name": "寒天之钉", "map": null, "note": "钉在七国上空的天钉，7.1 结尾被毁", "reveal_at": "ch7-4"}
+  ],
+
+  "factions": [
+    {"id": "fatui", "name": "愚人众", "nation": "snezhnaya", "description": "冰之女皇的执行机构，由十一位执行官统领，各国收集神之心"},
+    {"id": "abyss-order", "name": "深渊教团", "nation": null, "description": "与坎瑞亚遗民有关的组织，由旅行者的血亲领导"},
+    {"id": "knights-of-favonius", "name": "西风骑士团", "nation": "mondstadt", "description": "蒙德的管理者"},
+    {"id": "liyue-qixing", "name": "璃月七星", "nation": "liyue", "description": "璃月的商人领导层"},
+    {"id": "adepti", "name": "仙人", "nation": "liyue", "description": "岩神的旧部，守护璃月"},
+    {"id": "inazuma-shogunate", "name": "稻妻幕府（三奉行）", "nation": "inazuma", "description": "社奉行、天领奉行、勘定奉行"},
+    {"id": "watatsumi-army", "name": "海祇岛反抗军", "nation": "inazuma", "description": "反抗眼狩令的军队"},
+    {"id": "akademiya", "name": "教令院", "nation": "sumeru", "description": "须弥的学术管理机构"},
+    {"id": "court-of-fontaine", "name": "枫丹审判庭", "nation": "fontaine", "description": "以审判为核心的司法体系"},
+    {"id": "house-of-hearth", "name": "壁炉之家", "nation": "fontaine", "description": "「仆人」阿蕾奇诺抚养孤儿的组织"},
+    {"id": "natlan-tribes", "name": "纳塔六大部族", "nation": "natlan", "description": "共同对抗深渊的六个部族"},
+    {"id": "frostmoon-scions", "name": "霜月之子", "nation": "nod-krai", "description": "崇拜月亮的部族，供奉圣物「月髓」"},
+    {"id": "heavenly-principles", "name": "天理与四影", "nation": null, "description": "天空岛的统治者及其座下的执政"}
+  ],
+
+  "characters": [
+    {"id": "traveler", "name": "旅行者", "aliases": ["空", "荧"], "nation": null, "factions": [], "first_act": "prologue-1", "summary": "从世界之外来的双子之一，寻找失散的血亲"},
+    {"id": "sibling", "name": "血亲", "aliases": ["空", "荧", "王子", "公主"], "nation": null, "factions": ["abyss-order"], "first_act": "prologue-1",
+      "summary": "旅行者的双子兄弟或姐妹，被未知神明带走",
+      "secrets": [{"text": "已成为深渊教团的首领", "reveal_at": "ch1-4"}]},
+    {"id": "paimon", "name": "派蒙", "nation": null, "factions": [], "first_act": "prologue-1", "summary": "旅行者的向导",
+      "secrets": [{"text": "是天空岛的造物，失忆可能源于诅咒", "reveal_at": "ch7-1"}]},
+    {"id": "dainsleif", "name": "戴因斯雷布", "nation": null, "factions": [], "first_act": "ch1-4", "summary": "来自坎瑞亚的剑士，受诅咒而不死"},
+    {"id": "unknown-god", "name": "未知的神", "aliases": ["天理的维系者"], "nation": null, "factions": ["heavenly-principles"], "first_act": "prologue-1", "summary": "开场拦下双子的神明，身份未揭晓"},
+
+    {"id": "venti", "name": "温迪", "aliases": ["巴巴托斯", "风神"], "nation": "mondstadt", "factions": [], "first_act": "prologue-1", "summary": "吟游诗人",
+      "secrets": [{"text": "就是风神巴巴托斯", "reveal_at": "prologue-2"}]},
+    {"id": "dvalin", "name": "特瓦林", "aliases": ["风魔龙"], "nation": "mondstadt", "factions": [], "first_act": "prologue-1", "summary": "蒙德四风守护之一，曾被深渊污染"},
+    {"id": "jean", "name": "琴", "nation": "mondstadt", "factions": ["knights-of-favonius"], "first_act": "prologue-1", "summary": "西风骑士团代理团长"},
+    {"id": "amber", "name": "安柏", "nation": "mondstadt", "factions": ["knights-of-favonius"], "first_act": "prologue-1", "summary": "侦察骑士"},
+    {"id": "kaeya", "name": "凯亚", "nation": "mondstadt", "factions": ["knights-of-favonius"], "first_act": "prologue-1", "summary": "骑兵队长"},
+    {"id": "diluc", "name": "迪卢克", "nation": "mondstadt", "factions": [], "first_act": "prologue-3", "summary": "晨曦酒庄庄主，暗夜英雄"},
+    {"id": "albedo", "name": "阿贝多", "nation": "mondstadt", "factions": ["knights-of-favonius"], "first_act": "interlude-4", "summary": "炼金术士",
+      "secrets": [{"text": "是「黄金」莱茵多特创造的人造生命", "reveal_at": "interlude-4"}]},
+    {"id": "varka", "name": "法尔伽", "nation": "mondstadt", "factions": ["knights-of-favonius"], "first_act": "interlude-4", "summary": "西风骑士团大团长，长期远征在外"},
+
+    {"id": "zhongli", "name": "钟离", "aliases": ["摩拉克斯", "岩王帝君"], "nation": "liyue", "factions": [], "first_act": "ch1-1", "summary": "往生堂客卿",
+      "secrets": [{"text": "就是岩神摩拉克斯，「遇刺」是他安排的退休", "reveal_at": "ch1-3"}]},
+    {"id": "ningguang", "name": "凝光", "nation": "liyue", "factions": ["liyue-qixing"], "first_act": "ch1-1", "summary": "天权星"},
+    {"id": "xiao", "name": "魈", "nation": "liyue", "factions": ["adepti"], "first_act": "ch1-2", "summary": "护法夜叉"},
+    {"id": "shenhe", "name": "申鹤", "nation": "liyue", "factions": ["adepti"], "first_act": "interlude-1", "summary": "留云借风真君的弟子"},
+    {"id": "yelan", "name": "夜兰", "nation": "liyue", "factions": ["liyue-qixing"], "first_act": "interlude-2", "summary": "凝光手下的情报人员"},
+
+    {"id": "raiden-ei", "name": "雷电将军 / 影", "aliases": ["巴尔泽布", "雷神"], "nation": "inazuma", "factions": ["inazuma-shogunate"], "first_act": "ch2-1", "summary": "稻妻的雷神",
+      "secrets": [{"text": "坐镇稻妻的将军是人偶，真身影在一心净土冥想", "reveal_at": "ch2-3"}]},
+    {"id": "yae-miko", "name": "八重神子", "nation": "inazuma", "factions": [], "first_act": "ch2-3", "summary": "鸣神大社宫司"},
+    {"id": "kazuha", "name": "枫原万叶", "nation": "inazuma", "factions": [], "first_act": "ch2-0", "summary": "流浪武士"},
+    {"id": "ayaka", "name": "神里绫华", "nation": "inazuma", "factions": ["inazuma-shogunate"], "first_act": "ch2-1", "summary": "社奉行大小姐"},
+    {"id": "kokomi", "name": "珊瑚宫心海", "nation": "inazuma", "factions": ["watatsumi-army"], "first_act": "ch2-2", "summary": "海祇岛现人神巫女"},
+    {"id": "kujou-sara", "name": "九条裟罗", "nation": "inazuma", "factions": ["inazuma-shogunate"], "first_act": "ch2-2", "summary": "天领奉行大将"},
+
+    {"id": "nahida", "name": "纳西妲", "aliases": ["小吉祥草王", "布耶尔", "草神"], "nation": "sumeru", "factions": [], "first_act": "ch3-1", "summary": "须弥的草神，曾被教令院软禁"},
+    {"id": "rukkhadevata", "name": "大慈树王", "nation": "sumeru", "factions": [], "first_act": "ch3-1", "summary": "先代草神"},
+    {"id": "tighnari", "name": "提纳里", "nation": "sumeru", "factions": [], "first_act": "ch3-1", "summary": "巡林官"},
+    {"id": "collei", "name": "柯莱", "nation": "sumeru", "factions": [], "first_act": "ch3-1", "summary": "提纳里的学徒，曾患魔鳞病"},
+    {"id": "alhaitham", "name": "艾尔海森", "nation": "sumeru", "factions": ["akademiya"], "first_act": "ch3-2", "summary": "书记官"},
+    {"id": "cyno", "name": "赛诺", "nation": "sumeru", "factions": ["akademiya"], "first_act": "ch3-3", "summary": "大风纪官"},
+    {"id": "dehya", "name": "迪希雅", "nation": "sumeru", "factions": [], "first_act": "ch3-3", "summary": "沙漠雇佣兵"},
+    {"id": "nilou", "name": "妮露", "nation": "sumeru", "factions": [], "first_act": "ch3-2", "summary": "祖拜尔剧场舞者"},
+    {"id": "wanderer", "name": "流浪者", "aliases": ["散兵", "斯卡拉姆齐"], "nation": "inazuma", "factions": ["fatui"], "first_act": "ch2-3", "summary": "愚人众执行官第六席「散兵」",
+      "secrets": [
+        {"text": "是雷神制作的第一具人偶，被博士设计蒙骗", "reveal_at": "interlude-3"},
+        {"text": "从世界树中抹去自己，以「流浪者」身份重新生活", "reveal_at": "interlude-3"}
+      ]},
+    {"id": "apep", "name": "阿佩普", "nation": "sumeru", "factions": [], "first_act": "ch6-9", "summary": "古老的草之龙王"},
+
+    {"id": "furina", "name": "芙宁娜", "nation": "fontaine", "factions": ["court-of-fontaine"], "first_act": "ch4-1", "summary": "枫丹的「水神」",
+      "secrets": [{"text": "其实是扮演神明五百年的凡人", "reveal_at": "ch4-5"}]},
+    {"id": "focalors", "name": "芙卡洛斯", "nation": "fontaine", "factions": [], "first_act": "ch4-5", "summary": "真正的水神，藏身于谕示裁定枢机"},
+    {"id": "neuvillette", "name": "那维莱特", "nation": "fontaine", "factions": ["court-of-fontaine"], "first_act": "ch4-1", "summary": "最高审判官",
+      "secrets": [{"text": "是古老的水龙王", "reveal_at": "ch4-5"}]},
+    {"id": "navia", "name": "娜维娅", "nation": "fontaine", "factions": [], "first_act": "ch4-2", "summary": "刺玫会首领"},
+    {"id": "lyney", "name": "林尼", "nation": "fontaine", "factions": ["house-of-hearth"], "first_act": "ch4-1", "summary": "魔术师"},
+    {"id": "wriothesley", "name": "莱欧斯利", "nation": "fontaine", "factions": [], "first_act": "ch4-3", "summary": "梅洛彼得堡典狱长"},
+
+    {"id": "mavuika", "name": "玛薇卡", "nation": "natlan", "factions": ["natlan-tribes"], "first_act": "ch5-1", "summary": "纳塔火神"},
+    {"id": "kinich", "name": "基尼奇", "nation": "natlan", "factions": ["natlan-tribes"], "first_act": "ch5-1", "summary": "竞人族猎人"},
+    {"id": "mualani", "name": "玛拉妮", "nation": "natlan", "factions": ["natlan-tribes"], "first_act": "ch5-1", "summary": "流泉之众向导"},
+    {"id": "kachina", "name": "卡齐娜", "nation": "natlan", "factions": ["natlan-tribes"], "first_act": "ch5-1", "summary": "花翼之集战士"},
+    {"id": "ororon", "name": "欧洛伦", "nation": "natlan", "factions": ["natlan-tribes"], "first_act": "ch5-2", "summary": "曾协助队长，后成为六英杰之一"},
+    {"id": "citlali", "name": "茜特菈莉", "nation": "natlan", "factions": ["natlan-tribes"], "first_act": "ch5-3", "summary": "烟谜主的长老"},
+    {"id": "skirk", "name": "丝柯克", "nation": null, "factions": [], "first_act": "ch5-6", "summary": "来自深渊深处的剑士"},
+
+    {"id": "lauma", "name": "菈乌玛", "nation": "nod-krai", "factions": ["frostmoon-scions"], "first_act": "ch6-1", "summary": "霜月之子领袖"},
+    {"id": "flins", "name": "菲林斯", "nation": "nod-krai", "factions": [], "first_act": "ch6-1", "summary": "守护灯火的人"},
+    {"id": "nefer", "name": "奈芙尔", "nation": "nod-krai", "factions": [], "first_act": "ch6-1", "summary": "秘闻馆主人"},
+    {"id": "ineffa", "name": "伊涅芙", "nation": "nod-krai", "factions": [], "first_act": "ch6-0", "summary": "踏上归乡之路的机械少女"},
+
+    {"id": "tsaritsa", "name": "冰之女皇", "aliases": ["安娜丝塔夏"], "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch7-1", "summary": "至冬的神明，计划挑战天理"},
+    {"id": "pierro", "name": "丑角·皮耶罗", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch7-1", "harbinger_rank": 0, "summary": "愚人众首席执行官"},
+    {"id": "capitano", "name": "队长", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch5-2", "harbinger_rank": 1, "summary": "愚人众第一席",
+      "secrets": [{"text": "在纳塔代替玛薇卡承担了「注定的死亡」", "reveal_at": "ch5-5"}]},
+    {"id": "dottore", "name": "博士·多托雷", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch3-5", "harbinger_rank": 2, "summary": "愚人众第二席，拥有众多「切片」",
+      "secrets": [{"text": "本体在须弥烧树后被自己的切片反噬而死", "reveal_at": "ch6-10"}]},
+    {"id": "columbina", "name": "少女·哥伦比娅", "aliases": ["哥伦比娅·希珀塞莱尼娅"], "nation": "nod-krai", "factions": ["fatui"], "first_act": "ch6-1", "harbinger_rank": 3, "summary": "愚人众第三席，诞生于霜月",
+      "secrets": [{"text": "继承三月权能，成为完整的月神", "reveal_at": "ch6-8"}]},
+    {"id": "arlecchino", "name": "仆人·阿蕾奇诺", "nation": "fontaine", "factions": ["fatui", "house-of-hearth"], "first_act": "ch4-4", "harbinger_rank": 4, "summary": "愚人众第四席，壁炉之家的「父亲」"},
+    {"id": "pulcinella", "name": "公鸡·普契涅拉", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch6-10", "harbinger_rank": 5, "summary": "愚人众第五席"},
+    {"id": "sandrone", "name": "木偶·桑多涅", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch6-1", "harbinger_rank": 7, "summary": "愚人众第七席"},
+    {"id": "signora", "name": "女士", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "prologue-3", "harbinger_rank": 8, "summary": "愚人众第八席",
+      "secrets": [{"text": "在稻妻决斗后被雷电将军处决", "reveal_at": "ch2-3"}]},
+    {"id": "pantalone", "name": "富人·潘塔罗涅", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch7-1", "harbinger_rank": 9, "summary": "愚人众第九席"},
+    {"id": "tartaglia", "name": "公子·达达利亚", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch1-1", "harbinger_rank": 11, "summary": "愚人众第十一席"},
+    {"id": "tonia", "name": "冬妮娅", "nation": "snezhnaya", "factions": [], "first_act": "ch7-1", "summary": "公子体弱的妹妹"},
+    {"id": "odette", "name": "奥黛塔", "nation": "snezhnaya", "factions": ["fatui"], "first_act": "ch7-1", "summary": "首席芭蕾舞者，暗中是刺客"},
+    {"id": "voyanisa", "name": "沃雅妮莎", "nation": "snezhnaya", "factions": [], "first_act": "ch7-1", "summary": "首席歌唱家"},
+    {"id": "arosha", "name": "阿罗夏", "nation": "snezhnaya", "factions": [], "first_act": "ch7-1", "summary": "冬之猎手"},
+    {"id": "vesna", "name": "薇斯纳", "nation": "snezhnaya", "factions": [], "first_act": "ch7-3", "summary": "冬契军最年轻的指挥官"},
+    {"id": "mitya", "name": "米提亚", "nation": "snezhnaya", "factions": [], "first_act": "ch7-2", "summary": "剧院死亡事件的目击者"},
+    {"id": "ronova", "name": "若娜瓦", "aliases": ["死之执政"], "nation": null, "factions": ["heavenly-principles"], "first_act": "ch7-2", "summary": "天理座下四影之一，负责引导灵魂"},
+    {"id": "rhinedottir", "name": "莱茵多特", "aliases": ["黄金", "生之执政"], "nation": null, "factions": [], "first_act": "ch7-3", "summary": "炼金术士，以「生之执政」身份出现"}
+  ],
+
+  "relationships": [
+    {"source": "traveler", "target": "sibling", "type": "family", "label": "双子", "reveal_at": "prologue-1"},
+    {"source": "traveler", "target": "paimon", "type": "companion", "label": "旅伴", "reveal_at": "prologue-1"},
+    {"source": "unknown-god", "target": "sibling", "type": "conflict", "label": "带走", "reveal_at": "prologue-1"},
+    {"source": "sibling", "target": "abyss-order", "type": "leads", "label": "领导", "reveal_at": "ch1-4"},
+    {"source": "dainsleif", "target": "sibling", "type": "former_ally", "label": "500 年前同行，后分道扬镳", "reveal_at": "ch2-4"},
+    {"source": "dainsleif", "target": "khaenriah", "type": "origin", "label": "出身", "reveal_at": "ch1-4"},
+
+    {"source": "venti", "target": "dvalin", "type": "ally", "label": "风神与四风守护", "reveal_at": "prologue-2"},
+    {"source": "abyss-order", "target": "dvalin", "type": "manipulates", "label": "污染操控", "reveal_at": "prologue-2"},
+    {"source": "signora", "target": "venti", "type": "conflict", "label": "夺走神之心", "reveal_at": "prologue-3"},
+
+    {"source": "zhongli", "target": "tsaritsa", "type": "contract", "label": "以神之心交易", "reveal_at": "ch1-3"},
+    {"source": "signora", "target": "tartaglia", "type": "manipulates", "label": "利用公子做棋子", "reveal_at": "ch1-3"},
+    {"source": "ningguang", "target": "adepti", "type": "ally", "label": "联手对抗奥赛尔", "reveal_at": "ch1-3"},
+
+    {"source": "raiden-ei", "target": "kazuha", "type": "conflict", "label": "眼狩令下的对立", "reveal_at": "ch2-0"},
+    {"source": "kokomi", "target": "raiden-ei", "type": "conflict", "label": "反抗眼狩令", "reveal_at": "ch2-2"},
+    {"source": "fatui", "target": "watatsumi-army", "type": "manipulates", "label": "出售邪眼", "reveal_at": "ch2-2"},
+    {"source": "yae-miko", "target": "raiden-ei", "type": "friend", "label": "眷属与挚友", "reveal_at": "ch2-3"},
+    {"source": "yae-miko", "target": "wanderer", "type": "contract", "label": "以雷神之心换愚人众撤出稻妻", "reveal_at": "ch2-3"},
+    {"source": "raiden-ei", "target": "wanderer", "type": "creator", "label": "创造者", "reveal_at": "interlude-3"},
+
+    {"source": "akademiya", "target": "nahida", "type": "conflict", "label": "软禁", "reveal_at": "ch3-1"},
+    {"source": "akademiya", "target": "dottore", "type": "ally", "label": "合作造神", "reveal_at": "ch3-2"},
+    {"source": "nahida", "target": "rukkhadevata", "type": "successor", "label": "继任草神", "reveal_at": "ch3-1"},
+    {"source": "nahida", "target": "wanderer", "type": "conflict_then_ally", "label": "击败后收留", "reveal_at": "ch3-5"},
+    {"source": "dottore", "target": "wanderer", "type": "manipulates", "label": "杀害丹羽、伪造背叛", "reveal_at": "interlude-3"},
+    {"source": "nahida", "target": "dottore", "type": "contract", "label": "以神之心换「世界真相」", "reveal_at": "ch3-5"},
+
+    {"source": "focalors", "target": "furina", "type": "same_being", "label": "一分为二的人性与神性", "reveal_at": "ch4-5"},
+    {"source": "neuvillette", "target": "furina", "type": "colleague", "label": "审判台上的同僚", "reveal_at": "ch4-1"},
+    {"source": "focalors", "target": "neuvillette", "type": "returns_power", "label": "归还水元素权柄", "reveal_at": "ch4-5"},
+    {"source": "arlecchino", "target": "furina", "type": "conflict", "label": "提起诉讼", "reveal_at": "ch4-4"},
+    {"source": "arlecchino", "target": "lyney", "type": "guardian", "label": "壁炉之家的「父亲」", "reveal_at": "ch4-1"},
+
+    {"source": "capitano", "target": "mavuika", "type": "rival_then_ally", "label": "决斗后放弃夺取神之心", "reveal_at": "ch5-2"},
+    {"source": "ororon", "target": "capitano", "type": "ally", "label": "协助逃脱", "reveal_at": "ch5-2"},
+    {"source": "mavuika", "target": "traveler", "type": "ally", "label": "邀请为「第七位英雄」", "reveal_at": "ch5-2"},
+    {"source": "capitano", "target": "mavuika", "type": "sacrifice", "label": "代为承担注定的死亡", "reveal_at": "ch5-5"},
+    {"source": "rhinedottir", "target": "albedo", "type": "creator", "label": "创造者", "reveal_at": "interlude-4"},
+
+    {"source": "lauma", "target": "columbina", "type": "complicated", "label": "请她不再显灵", "reveal_at": "ch6-1"},
+    {"source": "frostmoon-scions", "target": "columbina", "type": "worship", "label": "奉为预言中的新神", "reveal_at": "ch6-1"},
+    {"source": "dottore", "target": "columbina", "type": "conflict", "label": "企图夺取三月权柄", "reveal_at": "ch6-4"},
+    {"source": "varka", "target": "nod-krai", "type": "ally", "label": "统合作战", "reveal_at": "ch6-3"},
+    {"source": "columbina", "target": "traveler", "type": "ally", "label": "并肩击败博士", "reveal_at": "ch6-8"},
+    {"source": "dottore", "target": "irminsul", "type": "conflict", "label": "火烧世界树", "reveal_at": "ch6-10"},
+    {"source": "pulcinella", "target": "dottore", "type": "disowns", "label": "宣布博士不代表愚人众", "reveal_at": "ch6-10"},
+
+    {"source": "tsaritsa", "target": "heavenly-principles", "type": "conflict", "label": "计划挑战天理", "reveal_at": "ch7-1"},
+    {"source": "tsaritsa", "target": "fatui", "type": "leads", "label": "统领", "reveal_at": "prologue-3"},
+    {"source": "pierro", "target": "paimon", "type": "knows", "label": "似乎早就认识派蒙", "reveal_at": "ch7-1"},
+    {"source": "tartaglia", "target": "tonia", "type": "family", "label": "兄妹", "reveal_at": "ch7-1"},
+    {"source": "ronova", "target": "paimon", "type": "conflict", "label": "企图「回收」", "reveal_at": "ch7-2"},
+    {"source": "ronova", "target": "tsaritsa", "type": "conflict", "label": "阻挠严冬计划与槲寄生计划", "reveal_at": "ch7-2"},
+    {"source": "tsaritsa", "target": "traveler", "type": "ally", "label": "邀请担任特使", "reveal_at": "ch7-3"},
+    {"source": "pierro", "target": "dainsleif", "type": "invites", "label": "邀请来到至冬", "reveal_at": "ch7-3"},
+    {"source": "rhinedottir", "target": "tsaritsa", "type": "complicated", "label": "对谈揭示降临者往事", "reveal_at": "ch7-4"},
+    {"source": "pierro", "target": "ronova", "type": "conflict", "label": "最终决战", "reveal_at": "ch7-4"}
+  ],
+
+  "events": [
+    {"id": "e01", "act": "prologue-1", "location": "mondstadt-city", "characters": ["traveler", "paimon", "amber", "dvalin", "venti"], "summary": "风魔龙袭击蒙德城，旅行者获得风元素之力并结识温迪"},
+    {"id": "e02", "act": "prologue-2", "location": "starsnatch-cliff", "characters": ["traveler", "venti", "dvalin"], "summary": "借来天空之琴呼唤特瓦林，深渊法师再次控制了它；温迪身份揭晓"},
+    {"id": "e03", "act": "prologue-3", "location": "stormterror-lair", "characters": ["traveler", "venti", "jean", "diluc", "dvalin", "signora"], "summary": "净化特瓦林；「女士」夺走风神之心"},
+    {"id": "e04", "act": "ch1-1", "location": "liyue-harbor", "characters": ["traveler", "zhongli", "tartaglia", "ningguang"], "summary": "请仙典仪上岩神「遇刺」，旅行者被怀疑，公子出手相助"},
+    {"id": "e05", "act": "ch1-2", "location": "liyue-harbor", "characters": ["traveler", "zhongli", "xiao"], "summary": "随钟离筹备送仙典仪，仙人与七星矛盾升级"},
+    {"id": "e06", "act": "ch1-3", "location": "guyun-stone-forest", "characters": ["traveler", "tartaglia", "ningguang", "zhongli", "signora"], "summary": "公子唤醒漩涡魔神，群玉阁坠落镇压；钟离交出岩神之心"},
+    {"id": "e07", "act": "ch1-4", "location": "the-abyss", "characters": ["traveler", "dainsleif", "sibling"], "summary": "旅行者与血亲第一次重逢，血亲已是深渊教团首领"},
+    {"id": "e08", "act": "interlude-1", "location": "liyue-harbor", "characters": ["traveler", "ningguang", "shenhe"], "summary": "海灯节期间重建群玉阁，申鹤登场"},
+    {"id": "e09", "act": "ch2-0", "location": "ritou", "characters": ["traveler", "kazuha"], "summary": "随南十字船队前往稻妻，得知眼狩令"},
+    {"id": "e10", "act": "ch2-1", "location": "inazuma-city", "characters": ["traveler", "ayaka", "raiden-ei"], "summary": "眼狩令仪式上挑战雷电将军，险些丧命"},
+    {"id": "e11", "act": "ch2-2", "location": "watatsumi", "characters": ["traveler", "kokomi", "kujou-sara"], "summary": "加入反抗军，揭露愚人众出售邪眼"},
+    {"id": "e12", "act": "ch2-3", "location": "plane-of-euthymia", "characters": ["traveler", "raiden-ei", "yae-miko", "kazuha", "signora", "wanderer"], "summary": "击败女士，进入一心净土说服影，眼狩令废除；雷神之心交给散兵"},
+    {"id": "e13", "act": "ch2-4", "location": "the-chasm", "characters": ["traveler", "dainsleif"], "summary": "层岩巨渊地下追查深渊教团，揭开坎瑞亚诅咒与血亲往事"},
+    {"id": "e14", "act": "interlude-2", "location": "the-chasm", "characters": ["traveler", "yelan", "xiao"], "summary": "众人困于巨渊之底，魈与夜叉旧日回忆重逢"},
+    {"id": "e15", "act": "ch3-1", "location": "gandharva-ville", "characters": ["traveler", "tighnari", "collei"], "summary": "见识魔鳞病与死域，得知草神地位低微"},
+    {"id": "e16", "act": "ch3-2", "location": "sumeru-city", "characters": ["traveler", "nahida", "nilou", "alhaitham"], "summary": "打破花神诞祭的时间循环，揭露造神计划"},
+    {"id": "e17", "act": "ch3-3", "location": "sumeru-desert", "characters": ["traveler", "dehya", "cyno"], "summary": "沙漠调查，拼出以散兵为躯体造「正机之神」的计划"},
+    {"id": "e18", "act": "ch3-4", "location": "sanctuary-surasthana", "characters": ["traveler", "alhaitham", "cyno", "dehya", "nilou", "nahida"], "summary": "营救纳西妲成功"},
+    {"id": "e19", "act": "ch3-5", "location": "irminsul", "characters": ["traveler", "nahida", "wanderer", "rukkhadevata", "dottore"], "summary": "击败正机之神，清除世界树污染；博士带走雷、草神之心"},
+    {"id": "e20", "act": "interlude-3", "location": "tatarasuna", "characters": ["traveler", "wanderer", "nahida", "dottore"], "summary": "散兵的身世揭晓，他从世界树中抹去自己"},
+    {"id": "e21", "act": "ch3-6", "location": "sumeru-desert", "characters": ["traveler", "sibling", "dainsleif"], "summary": "500 年前卡利贝尔的悲剧，血亲与天理为敌的缘由"},
+    {"id": "e22", "act": "ch4-1", "location": "opera-epiclese", "characters": ["traveler", "furina", "neuvillette", "lyney"], "summary": "替林尼辩护，得知枫丹溶解的预言"},
+    {"id": "e23", "act": "ch4-2", "location": "court-of-fontaine", "characters": ["traveler", "navia"], "summary": "少女失踪案与原始胎海之水，旅行者被陷害入狱"},
+    {"id": "e24", "act": "ch4-3", "location": "fortress-of-meropide", "characters": ["traveler", "wriothesley"], "summary": "在海底监狱查清线索，洗清罪名"},
+    {"id": "e25", "act": "ch4-4", "location": "opera-epiclese", "characters": ["traveler", "arlecchino", "furina"], "summary": "审判芙宁娜，预言开始应验"},
+    {"id": "e26", "act": "ch4-5", "location": "opera-epiclese", "characters": ["furina", "focalors", "neuvillette", "tartaglia"], "summary": "水神自我审判，权柄归还水龙王，预言破解；水神之心交给仆人"},
+    {"id": "e27", "act": "ch4-6", "location": null, "characters": ["traveler", "sibling"], "summary": "血亲讲述龙王与原初之人的创世「睡前故事」"},
+    {"id": "e28", "act": "ch5-1", "location": "natlan-tribes", "characters": ["traveler", "mualani", "kachina", "kinich"], "summary": "来到纳塔，归火圣夜巡礼与深渊危机"},
+    {"id": "e29", "act": "ch5-2", "location": "stadium-sacred-flame", "characters": ["traveler", "kachina", "mavuika", "capitano", "ororon"], "summary": "营救卡齐娜；队长挑战火神落败，旅行者成为「第七位英雄」"},
+    {"id": "e30", "act": "ch5-3", "location": "night-kingdom", "characters": ["traveler", "capitano", "ororon", "citlali"], "summary": "队长尝试重构地脉失败，夜神被唤醒"},
+    {"id": "e31", "act": "ch5-4", "location": "natlan-tribes", "characters": ["traveler", "mavuika"], "summary": "揭示火神计划的代价：注定的死亡"},
+    {"id": "e32", "act": "ch5-interlude", "location": "natlan-tribes", "characters": ["mavuika"], "summary": "500 年前的烬寂海之战与古代英雄的牺牲"},
+    {"id": "e33", "act": "ch5-5", "location": "the-abyss", "characters": ["traveler", "mavuika", "capitano"], "summary": "最终决战胜利，队长代火神承担死亡，神之心留在玛薇卡手中"},
+    {"id": "e34", "act": "interlude-4", "location": "mondstadt-city", "characters": ["traveler", "albedo", "venti", "varka"], "summary": "阿贝多被指控杀人，丘丘人突袭蒙德"},
+    {"id": "e35", "act": "ch5-6", "location": "natlan-tribes", "characters": ["traveler", "dainsleif", "skirk", "mavuika"], "summary": "深渊教团按血亲计划在纳塔行动，丝柯克登场"},
+    {"id": "e36", "act": "ch6-0", "location": "nasha-town", "characters": ["traveler", "ineffa"], "summary": "随伊涅芙踏上归途，来到挪德卡莱"},
+    {"id": "e37", "act": "ch6-1", "location": "nasha-town", "characters": ["traveler", "lauma", "flins", "nefer", "columbina", "sandrone"], "summary": "结识挪德卡莱各方势力，遭遇狂猎现象"},
+    {"id": "e38", "act": "ch6-2", "location": "hiisi-island", "characters": ["traveler", "lauma", "columbina", "dottore"], "summary": "追查失窃的月髓，发现博士的月矩力实验"},
+    {"id": "e39", "act": "ch6-3", "location": "nasha-town", "characters": ["traveler", "varka"], "summary": "猎月人复活，法尔伽归来统合各方"},
+    {"id": "e40", "act": "ch6-4", "location": "silver-moon-court", "characters": ["traveler", "columbina", "dottore"], "summary": "找到博士实验室，哥伦比娅力量透支落入博士掌控"},
+    {"id": "e41", "act": "ch6-5", "location": "silver-moon-court", "characters": ["traveler", "columbina", "albedo", "dottore"], "summary": "祈月之夜，哥伦比娅被截杀后跳入月之门"},
+    {"id": "e42", "act": "ch6-6", "location": null, "characters": ["columbina"], "summary": "逆时之旅，从三月女神处继承完整权能，找回真名"},
+    {"id": "e43", "act": "ch6-7", "location": "nasha-town", "characters": ["traveler", "wanderer", "sandrone", "dottore"], "summary": "博士的阴谋笼罩天空，旅行者面见三月女神"},
+    {"id": "e44", "act": "ch6-8", "location": "silver-moon-court", "characters": ["traveler", "columbina", "dottore", "sandrone"], "summary": "哥伦比娅以完整月神身份回归，击败博士切片；月亮归乡"},
+    {"id": "e45", "act": "ch6-9", "location": "gurabad", "characters": ["traveler", "nahida", "apep"], "summary": "世界树异常，纳西妲昏迷，深入居尔城废墟"},
+    {"id": "e46", "act": "ch6-10", "location": "irminsul", "characters": ["traveler", "nahida", "wanderer", "dottore", "pulcinella"], "summary": "博士本体烧毁世界树，「阿如」取而代之，博士被切片反噬而死"},
+    {"id": "e47", "act": "ch7-1", "location": "zapolyarny", "characters": ["traveler", "paimon", "tsaritsa", "pierro", "sandrone", "tartaglia", "tonia", "odette", "voyanisa", "arosha"], "summary": "进入至冬，严冬计划与槲寄生计划；派蒙身世线索浮现，女皇登场"},
+    {"id": "e48", "act": "ch7-2", "location": "korolevsky-theater", "characters": ["traveler", "mitya", "ronova", "paimon"], "summary": "剧院连环死亡事件，死之执政若娜瓦现身；严冬计划暂停"},
+    {"id": "e49", "act": "ch7-3", "location": "zapolyarny-palace", "characters": ["traveler", "tsaritsa", "vesna", "dainsleif", "pierro"], "summary": "与女皇面对面，受邀担任特使；凝聚「生之印」对抗死之诅咒"},
+    {"id": "e50", "act": "ch7-4", "location": "zapolyarny", "characters": ["traveler", "tsaritsa", "rhinedottir", "ronova", "pierro"], "summary": "若娜瓦失去权能后启动地原胚质摧毁寒天之钉，提瓦特面临圣土化危机"}
+  ],
+
+  "gnoses": [
+    {"element": "风", "original_holder": "venti", "current_holder": "fatui",
+      "path": [{"holder": "signora", "act": "prologue-3", "note": "强夺"}]},
+    {"element": "岩", "original_holder": "zhongli", "current_holder": "fatui",
+      "path": [{"holder": "signora", "act": "ch1-3", "note": "钟离依约交出"}]},
+    {"element": "雷", "original_holder": "raiden-ei", "current_holder": "fatui",
+      "path": [
+        {"holder": "wanderer", "act": "ch2-3", "note": "八重神子交易"},
+        {"holder": "nahida", "act": "ch3-5", "note": "击败正机之神后夺回"},
+        {"holder": "dottore", "act": "ch3-5", "note": "与纳西妲交易后带走"}
+      ]},
+    {"element": "草", "original_holder": "nahida", "current_holder": "fatui",
+      "path": [{"holder": "dottore", "act": "ch3-5", "note": "交换「世界真相」"}]},
+    {"element": "水", "original_holder": "focalors", "current_holder": "fatui",
+      "path": [{"holder": "arlecchino", "act": "ch4-5", "note": "预言破解后交出"}]},
+    {"element": "火", "original_holder": "mavuika", "current_holder": "unknown",
+      "path": [
+        {"holder": "mavuika", "act": "ch5-5", "note": "队长放弃夺取，留在火神手中"},
+        {"holder": null, "act": "ch6-10", "note": "据玩家梳理，在烧树中下落不明"}
+      ]},
+    {"element": "冰", "original_holder": "tsaritsa", "current_holder": "tsaritsa", "path": []}
+  ]
+};
+
+</script>
+<script>
+/* Auto-generated by the update-data script. Do not edit this file directly. */
+window.GENSHIN_STORY = "# 原神主线剧情详细梳理\n\nOct 25, 2026 · @BAOLIN\n\n## 阅读说明与世界观背景\n\n本文按主线（魔神任务）的推出顺序梳理，截至 7.1 版本（2026年9月）。全文含大量剧透。早期章节依据游戏内容整理，6.x 后半段和至冬篇的部分细节来自官方公告与玩家梳理，以后续版本为准。\n\n### 世界的基本设定\n\n提瓦特是一片由七种元素构成的大陆，七个国家各由一位神明统治，合称「尘世七执政」。被神明认可的凡人会获得「神之眼」，能使用元素力。七神之上还有「天空岛」，那里的统治者被称作「天理」，规定着整个世界的秩序。\n\n| 国家 | 元素 | 神明 | 国家理念 | 对应章节 |\n| --- | --- | --- | --- | --- |\n| 蒙德 | 风 | 巴巴托斯（温迪） | 自由 | 序章 |\n| 璃月 | 岩 | 摩拉克斯（钟离） | 契约 | 第一章 |\n| 稻妻 | 雷 | 巴尔泽布（雷电将军/影） | 永恒 | 第二章 |\n| 须弥 | 草 | 布耶尔（纳西妲） | 智慧 | 第三章 |\n| 枫丹 | 水 | 芙卡洛斯（芙宁娜为其化身） | 正义 | 第四章 |\n| 纳塔 | 火 | 玛薇卡 | 战争 | 第五章 |\n| 至冬 | 冰 | 冰之女皇（安娜丝塔夏） | 爱 | 第六、七章 |\n\n### 两段关键的过去\n\n- 约两千年前的「魔神战争」：众多魔神争夺七个神座，最终胜出的七位成为执政。许多战败魔神的怨念后来成为各国的祸患，比如璃月的漩涡魔神。\n- 500 年前的「坎瑞亚覆灭」：坎瑞亚是位于地下、没有神明的人类国度，以炼金和机械技术闻名。它因触碰禁忌被天理降罚毁灭，幸存者有的变成丘丘人，有的成为深渊教团。坎瑞亚末日的余波也波及了地上各国。\n\n### 开场：双子的离散\n\n玩家扮演的旅行者是一对从世界之外漂流而来的双子之一（男主「空」或女主「荧」，没选的那位就是血亲）。双子准备离开提瓦特时，被一位自称「天理的维系者」的未知神明拦下。一人被封印陷入沉睡，另一人被带走。\n\n旅行者醒来时，世界已经过去了很久。后来的剧情会揭示，双子其实是在 500 年前坎瑞亚覆灭时被卷入的，旅行者在这里一睡就是 500 年。醒来后，旅行者在海边钓起了漂浮的派蒙，两人结伴出发：去拜访七国的神明，打听血亲的下落。这就是整条主线的起点。\n\n## 序章·蒙德「捕风的异乡人」（1.0）\n\n蒙德篇讲的是「风魔龙」危机：一条被污染的守护巨龙袭击城市，而风神本人就混在人群里。结尾愚人众夺走风神的神之心，主线最大的势力线就此展开。\n\n### 第一幕「捕风的异乡人」\n\n旅行者和派蒙在蒙德城外遇到侦察骑士安柏，进城时正赶上风魔龙袭城。旅行者触碰七天神像后获得了风元素之力，在空中帮忙击退了风魔龙。\n\n蒙德由西风骑士团管理。真正的大团长法尔伽带着主力远征在外，由代理团长琴主持大局。骑兵队长凯亚、图书管理员丽莎请旅行者帮忙清理风魔龙曾经的据点，那里已经被深渊教团占据。\n\n调查中，旅行者在风起地附近遇到一位吟游诗人温迪，看到他与风魔龙对话。风魔龙留下的「泪滴」结晶纯净无比，说明它并非天生邪恶。\n\n### 第二幕「为了没有眼泪的明天」\n\n温迪向旅行者坦白：风魔龙其实是蒙德四风守护之一的东风之龙特瓦林。500 年前，坎瑞亚的罪人放出黑龙杜林袭击蒙德，特瓦林击杀了杜林，却吞下了它的毒血，从此长年沉睡疗伤。它醒来时风神已经不在身边，深渊教团趁虚而入，用谎言让它相信自己被风神抛弃。\n\n要唤醒特瓦林，需要风神留下的圣物「天空之琴」。两人从西风大教堂「借」走天空之琴，却发现它的力量已经枯竭，于是用风魔龙的眼泪净化了琴。在追查过程中，温迪的真实身份也揭晓了：他就是风神巴巴托斯。他平时以凡人身份生活，因为蒙德的理念是「自由」，他不愿以神的身份直接统治。\n\n温迪在摘星崖弹琴呼唤特瓦林，特瓦林一度恢复清醒，但深渊法师突然出手，用诅咒再次控制了它。\n\n### 第三幕「巨龙与自由之歌」\n\n琴团长、在暗中以「暗夜英雄」身份行动的晨曦酒庄庄主迪卢克、旅行者和温迪联手，杀入风龙废墟。旅行者在特瓦林背上与深渊法师交战，温迪以琴声相助，最终驱散了诅咒，特瓦林回到了蒙德的守护者位置。\n\n危机解除后，愚人众执行官第八席「女士」突然现身，当众击倒温迪，夺走了他的神之心。旅行者这才知道，至冬的冰之女皇正在收集七神的神之心，而愚人众就是她的执行机构。温迪告诉旅行者，想打听血亲的消息，可以去找下一位神明，也是最古老的那位：岩神摩拉克斯。\n\n## 第一章·璃月「辞行久远之躯」（1.x）\n\n璃月篇的核心是「岩神之死」：统治璃月三千七百年的岩王帝君突然「遇刺」，所有人都在争夺他留下的东西。最终揭晓这是神明亲手安排的退休，璃月从「神治」走向「人治」。第四幕则第一次让旅行者见到了血亲。\n\n### 第一幕「浮世浮生千岩间」\n\n旅行者来到商港璃月，赶上一年一度的「请仙典仪」。岩王帝君每年在这一天降临，为璃月指引来年的方向。可这一次，帝君的仙躯从天上直直坠落，「遇刺身亡」。\n\n掌管璃月的「璃月七星」立刻封锁现场，身为外来者的旅行者被当成嫌疑人。愚人众执行官第十一席「公子」达达利亚出手帮旅行者脱身，并把往生堂的客卿钟离介绍给旅行者。钟离博学而从容，对璃月的历史和习俗无所不知。\n\n为了洗清嫌疑，旅行者前往绝云间拜访守护璃月的仙人们。仙人们怀疑是七星害死了帝君，局势变得紧张。\n\n### 第二幕「辞行久远之躯」\n\n往生堂受托主持帝君的「送仙典仪」，钟离带着旅行者四处筹备：挑选夜泊石、置办香膏、寻找典仪需要的仙家器物……所有开销都由公子买单。这一幕节奏很慢，像是钟离带着旅行者把璃月的风物和历史逛了一遍。\n\n同时，仙人们与七星的矛盾升级。在望舒客栈，旅行者结识了守护璃月、常年与魔神残渣作战的夜叉魈。\n\n### 第三幕「迫近的客星」\n\n公子的真实目的浮出水面：他想潜入停放帝君仙躯的黄金屋，夺取岩神的神之心。结果仙躯里根本没有神之心。走投无路的公子孤注一掷，用邪眼唤醒了被岩神镇压在孤云阁海底的远古魔神「漩涡之魔神」奥赛尔。\n\n天权星凝光与三位仙人联手，旅行者也参战。最后凝光不惜让她倾尽心血的空中宫殿「群玉阁」坠落，压住了奥赛尔。璃月第一次在没有神明出手的情况下，靠凡人与仙人的力量渡过了灾难。\n\n事后，愚人众执行官「女士」现身，钟离当着旅行者的面把神之心交给了她。真相是：钟离就是岩神摩拉克斯本人。帝君的「死」是他和冰之女皇的交易，他用神之心换取至冬的某些承诺，同时借这场「死亡」卸下神职，测试璃月能否在没有神的情况下独立运转。公子从头到尾都只是被「女士」利用的棋子。钟离说他之所以不再当神，是因为契约总有结束的一天，他已经「磨损」得太久了。\n\n### 第四幕「我们终将重逢」\n\n这一幕前，旅行者在世界任务中结识了神秘剑士戴因斯雷布。他自称来自 500 年前覆灭的坎瑞亚，似乎认识旅行者的血亲，并一直在追查深渊教团。\n\n旅行者与戴因调查深渊教团在各地的据点，深入一处深渊异界。在那里，旅行者终于和失散的血亲重逢。血亲已经成为深渊教团的首领，被教团成员称为「王子」或「公主」。\n\n血亲没有跟旅行者回去。TA 告诉旅行者：这个世界有很多旅行者还不知道的真相，在旅途走完之前，现在还不是团聚的时候，然后留下一句「我们终将重逢」就消失了。戴因与血亲之间也明显有着旧怨。从这里开始，「深渊」和「坎瑞亚」成为主线的第二条暗线。\n\n## 间章第一、二幕：璃月的后续（2.4、2.7）\n\n两段间章都发生在璃月，补的是「帝君退场后，璃月人自己怎么扛事」，同时把深渊线往层岩巨渊推进。\n\n### 间章第一幕「风起鹤归」（2.4）\n\n海灯节期间，凝光着手重建坠毁的群玉阁。旅行者在这里结识了申鹤：她自幼被留云借风真君收养，在山中修行，身上的煞气要靠红绳压制，与人间格格不入。剧情围绕申鹤的身世、她与人世的重新连接，以及孤云阁一带残留的魔神威胁展开。戏曲名角云堇也在这一幕登场。\n\n这一幕的意义在于：璃月七星与仙人第一次真正合作，群玉阁也在众人的力量下重新升空。\n\n### 间章第二幕「危途疑踪」（2.7）\n\n旅行者因为在意层岩巨渊最下方的情况，与派蒙一同前去调查，结果在那里遇见了意料之外的人：律法顾问烟绯、荒泷一斗与久岐忍，以及身份神秘的夜兰。众人意外坠入巨渊之底，被困地下。\n\n夜兰明面上是总务司的普通人员，实际上是凝光手下的情报人员，正在追查愚人众和深渊在巨渊里的动作。众人在地底一路寻找出路，旅行者设法联系上了魈。这一幕的高潮是魈在巨渊深处与 500 年前的旧日回忆重逢：当年坎瑞亚灾变时，璃月的夜叉们曾在层岩巨渊与深渊魔物死战，大多没有回来。这段剧情让很多玩家印象深刻。\n\n## 第二章·稻妻「千手百眼，天下人间」（2.x）\n\n稻妻篇讲的是一个神为了「永恒」而让整个国家停止前进：雷神锁国、收缴神之眼，内战因此爆发，愚人众在背后两头获利。最后旅行者凭借众人的愿望，让雷神重新面对「变化」。\n\n### 序幕「振袖秋风问红叶」\n\n离开璃月前，旅行者搭上北斗的南十字船队。船上有一位来自稻妻的流浪武士枫原万叶，他因为反抗「眼狩令」而被通缉，流亡海外。在他口中，旅行者第一次听说稻妻的现状：雷电将军下令锁国，并颁布「眼狩令」，强制收缴民众的神之眼，献给追求「永恒」的雷神。\n\n### 第一幕「不动鸣神，恒常乐土」\n\n旅行者偷渡进入稻妻离岛，在社奉行神里家的托马帮助下进入稻妻城。社奉行的大小姐神里绫华希望借助旅行者的力量，暗中对抗眼狩令。旅行者也认识了烟花店的宵宫等稻妻市民。\n\n为了见到雷神，旅行者主动在眼狩令的仪式上现身。雷电将军亲自出手，一招「无想的一刀」几乎要了旅行者的命。旅行者侥幸脱身，却只能逃离稻妻城。这一刀让旅行者意识到，雷电将军的力量远超常理，单凭武力无法改变稻妻。\n\n### 第二幕「无念无想，泡影断灭」\n\n旅行者逃往海祇岛，加入由「现人神巫女」珊瑚宫心海领导的反抗军，与五郎等人并肩作战。在前线，旅行者发现了一个可怕的阴谋：天领奉行九条家和愚人众暗中向反抗军士兵出售「邪眼」。邪眼能让普通人使用雷元素力，却会不断吸取使用者的生命。\n\n反抗军与幕府军的战争，实际上是愚人众在两边同时下注：一边帮幕府收神之眼，一边用邪眼消耗反抗军的人命。旅行者协助摧毁了邪眼工厂。战场上，天领奉行的大将九条裟罗也开始怀疑自己效忠的对象。\n\n### 第三幕「千手百眼，天下人间」\n\n鸣神大社的宫司八重神子出面指导旅行者。她透露：一直坐镇稻妻的雷电将军其实是一具人偶，真正的雷神「影」把意识封闭在名为「一心净土」的空间中冥想，以此抵御时间带来的「磨损」，追求永恒。\n\n先是愚人众执行官「女士」在御前决斗中败给旅行者，随即被雷电将军当场处决。接着，旅行者在将军面前再次举起反抗之刃。这一次，万叶闯入御前，他手中亡友留下的神之眼亮起；被收缴的无数神之眼里寄托的愿望，也汇聚到旅行者身上。旅行者挡住了无想的一刀，进入一心净土，与影本人当面对决。\n\n影的执念来自 500 年前：她的双胞胎姐姐、前任雷神「真」在坎瑞亚灾变中死去，她因此害怕失去，想让一切永远停在原地。在旅行者和八重神子的劝说下，她决定重新正视「变化」，眼狩令被废除，锁国也随之解除。\n\n结尾，八重神子坦白她已与愚人众做了交易：雷神的神之心交给了愚人众执行官「散兵」，换取愚人众和九条家的势力退出稻妻。\n\n### 第四幕「回响渊底的安魂曲」\n\n这一幕回到深渊线，舞台是层岩巨渊的地下矿区。旅行者与戴因重新合作，追查深渊教团的活动，在地底看到了与坎瑞亚、与血亲有关的过去片段。\n\n这一幕揭开了几件关键的事：\n\n- 500 年前坎瑞亚覆灭时，天理降下的诅咒让许多坎瑞亚人变成了丘丘人等魔物，而一部分血统纯正的人则被诅咒「不死」，戴因就是其中之一。\n- 深渊教团与坎瑞亚的遗民有着直接关系，血亲正是带领他们的人。\n- 血亲与戴因 500 年前曾一起旅行，后来因立场不同而分道扬镳。\n\n旅行者第一次真切地感到：血亲站在深渊那边，也许有自己的理由。\n\n## 第三章·须弥「虚空劫灰往世书」（3.x）\n\n须弥篇的主题是「知识」与「造神」：教令院软禁了年幼的草神，转而和愚人众合作，想用人偶和神之心造一个新神。旅行者帮助纳西妲夺回须弥，同时第一次接触到「世界树」——记录提瓦特一切历史的系统。\n\n### 第一幕「穿越烟帷与暗林」\n\n旅行者来到雨林中的化城郭，结识巡林官提纳里和他的学徒柯莱。柯莱患有一种叫「魔鳞病」的绝症，雨林中也出现了寸草不生的「死域」。这一切都和先代草神大慈树王留下的「禁忌知识」污染有关。\n\n须弥由学术机构「教令院」管理，所有人通过「虚空终端」获取知识。旅行者逐渐发现，现任草神小吉祥草王（纳西妲）在须弥地位很低，甚至被教令院关在净善宫里，民众普遍更怀念五百年前离世的大慈树王。\n\n### 第二幕「千朵玫瑰带来的黎明」\n\n在须弥城，旅行者陷入了诡异的「时间循环」：同一个花神诞祭反复上演，所有人都没有察觉。被软禁的纳西妲通过梦境联系上旅行者，帮助旅行者打破循环。\n\n真相是：教令院与愚人众执行官「博士」合作，借花神诞祭收集全体须弥人的梦境，提炼能量用于「造神计划」。旅行者结识了舞者妮露、书记官艾尔海森等人，也正式见到了纳西妲。\n\n### 第三幕「迷梦与空幻与欺骗」\n\n旅行者前往沙漠调查，与雇佣兵迪希雅、大风纪官赛诺等人接触。沙漠民族与教令院积怨已久，教令院的贤者却正在暗中把沙漠当作造神的实验场。旅行者一步步拼凑出计划的全貌：教令院要以人偶「散兵」为躯体，装入从稻妻得到的雷神之心，造出一位听命于教令院的「正机之神」。\n\n### 第四幕「赤土之王与三朝圣者」\n\n旅行者召集艾尔海森、赛诺、迪希雅、提纳里、妮露等人，策划了一场营救纳西妲的行动。众人分头行动：有人潜入教令院，有人在祖拜尔剧场演出吸引注意，有人对付沙漠中的阻碍。最终众人成功从净善宫救出了纳西妲，教令院的贤者们的阴谋也随之暴露。\n\n### 第五幕「虚空鼓动，劫火高扬」\n\n散兵已在「正机之神」中觉醒为新的神明，力量强大。旅行者与纳西妲进入他的空间与他对决。纳西妲揭示她在梦中已经模拟了无数次这场对决，最终在关键时刻夺取了散兵体内的神之心，击败了他。\n\n纳西妲借助这颗雷神之心连接世界树，唤醒大慈树王残存的意识。原来大慈树王当年为了消除「禁忌知识」的污染，把自己从世界树中抹去。纳西妲最终清除了世界树中的污染，魔鳞病和死域随之消失，但须弥人关于大慈树王的记忆也被一并抹去。\n\n结尾，博士登场与纳西妲谈判。纳西妲以手中的神之心要挟，逼博士毁掉他的「切片」备份；博士则以「世界真相」的情报作交换，最终把雷神之心和草神自己的神之心都带走了。至此，愚人众已经收集了风、岩、雷、草四颗神之心。\n\n### 第六幕「卡利贝尔」\n\n旅行者回到深渊线，在须弥的沙漠中追寻血亲的足迹，看到了 500 年前的往事：坎瑞亚覆灭后，血亲与戴因一起旅行，遇到了一位名叫卡利贝尔的坎瑞亚孩子。卡利贝尔在天理的诅咒下变成了魔物，最终死去。\n\n这段经历是血亲决定站到天理对立面的重要原因：TA 认为天理对坎瑞亚遗民的惩罚是不公正的。旅行者也第一次理解了血亲的愤怒从何而来。\n\n### 间章第三幕「倾落伽蓝」（3.3）\n\n这一幕讲的是散兵的身世。他原本是雷神影制作的第一具人偶，因为「太过脆弱、会哭泣」被封存，后来流落到踏鞴砂，与当地造兵司正丹羽结为好友。博士暗中杀害丹羽，并伪造了丹羽背叛的假象，让散兵从此认定自己被所有人抛弃，最终加入了愚人众。\n\n得知真相后，散兵决定从世界树中删除自己的存在，想以此改写历史。但历史几乎没有改变：博士早已在其他地方埋下了同样的伏笔。抹去自己之后，他以「流浪者」的新身份留在了须弥。由于旅行者来自世界之外，只有旅行者还记得他过去的一切。\n\n## 第四章·枫丹「罪人舞步旋」（4.x）\n\n枫丹篇是一出「审判」：一个预言说所有枫丹人都会溶解在海水里，而高调的水神芙宁娜似乎什么也做不了。最终揭晓，芙宁娜是一个独自扮演神明五百年的凡人，真正的水神用一场「自我审判」破解了预言。\n\n### 第一幕「白露与黑潮的序诗」\n\n旅行者来到正义之国枫丹。这里的一切纠纷都在欧庇克莱歌剧院审判，审判既是司法也是表演，判决由机器「谕示裁定枢机」给出，主持者是沉默威严的最高审判官那维莱特，而水神芙宁娜则热衷在审判台上表演。\n\n旅行者旁听了一场魔术师林尼被指控的审判，主动替他辩护，揭开了案件背后的另一个真相。旅行者由此听说了枫丹流传多年的预言：海水会上涨，所有枫丹人都会溶解在水中，只剩水神独自坐在神座上哭泣。而近年来枫丹确实不断有人「消失」。\n\n### 第二幕「仿若无因飘落的轻雨」\n\n旅行者追查少女连续失踪案，结识了「刺玫会」首领娜维娅。她的父亲卡雷斯多年前被判有罪处决，娜维娅坚信父亲蒙冤。调查揭露，失踪的真相与「原始胎海之水」有关：枫丹人接触这种水就会溶解，而背后有人在利用它作恶。\n\n真凶最终被揭穿，卡雷斯的冤屈也得以洗清。但旅行者被人设计陷害，在审判中被判有罪。\n\n### 第三幕「向深水中的晨星」\n\n旅行者被关进海底监狱梅洛彼得堡，结识了典狱长莱欧斯利。监狱底下藏着大量原始胎海之水的秘密，海水正在上涨。旅行者在狱中查清了关键线索，最终洗清罪名出狱。\n\n### 第四幕「谕示胎动的终焉之刻」\n\n愚人众执行官第四席「仆人」阿蕾奇诺正式登场。旅行者与她合作，对水神芙宁娜提起诉讼，想逼她说出关于预言的真相。审判中，芙宁娜在步步紧逼下精神崩溃，人们开始怀疑她根本不是神。\n\n就在审判过程中，预言开始应验：海水涌入枫丹城，人们开始溶解。\n\n### 第五幕「罪人舞步旋」\n\n真相揭晓。枫丹人原本是由水中的生灵变成的，而水神从前任执政手中继承神位时，就继承了这个「原罪」：天理判定枫丹人终将溶解。为了破解这个命运，水神芙卡洛斯把自己一分为二：一半是作为凡人的芙宁娜，被要求在五百年里扮演「神明」、不能对任何人说出真相；另一半则藏进了谕示裁定枢机，五百年来一直在吸收审判产生的能量。\n\n最终，芙卡洛斯借助积蓄的力量，让枢机判决「水神有罪」，亲手处决了自己的神格，摧毁了水神的神座。这样，被天理夺走的水元素权柄回到了它原本的主人那维莱特手中：他其实是古老的水龙王。那维莱特收回权能后，把枫丹人真正变成了人类，预言就此破解。\n\n同一时期，愚人众执行官「公子」与一头从世界之外闯入的巨兽「吞天之鲸」在海中激战，那维莱特和旅行者也参与了对抗。\n\n芙宁娜终于卸下了扮演五百年的面具，作为普通人重新生活。水神的神之心则交给了阿蕾奇诺。\n\n### 第六幕「睡前故事」\n\n这一幕回到血亲线。旅行者在一场特殊的经历中再次见到血亲，并从 TA 那里听到了一个「睡前故事」：提瓦特最初属于七位龙王，后来一位「原初之人」从世界之外到来，与龙王们交战，夺走了他们的权柄，建立了天空岛和如今的秩序。七神手中的元素权能，其实最初属于龙王。\n\n这个故事第一次从根本上解释了提瓦特的「创世」，也解释了那维莱特这样的龙王与天理之间的恩怨。\n\n### 间章第四幕「悖理」（5.6）\n\n间章回到蒙德。故事围绕阿贝多被指控杀人展开，丘丘人突袭蒙德城成为关键转折，温迪也在紧要关头联络法尔伽与艾莉丝，共同应对动荡局势。阿贝多是炼金术士「黄金」莱茵多特创造的人造生命，这一幕对他的身世和他内心对「人」的认同做了交代，同时为大团长法尔伽回归、以及后续的挪德卡莱篇做了铺垫。\n\n## 第五章·纳塔「炽烈的还魂诗」（5.x）\n\n纳塔篇是一场「全国总动员」：深渊正在侵蚀纳塔的地脉，纳塔距离毁灭只剩一年。火神玛薇卡用五百年布下的计划、愚人众「队长」的另一套方案、以及旅行者的力量，最终合在一起打赢了这场战争。这也是第一个神之心没有交给愚人众的国家。\n\n### 背景：五百年前的布局\n\n纳塔由六大部族组成，人们死后灵魂会回到地脉中的「夜神之国」，英雄可以借「还魂诗」的规则死而复生。这套规则依赖「死之执政」的力量建立。\n\n五百年前，玛薇卡继任火神，被认为是历来最强大的火神。坎瑞亚灾厄时期，她与六英雄预言到 500 年后的纳塔会因夜神之国彻底深渊化而毁灭，于是制定了一个长远计划。与亲人朋友道别后，她把自己的生命存入圣火、提前死去，直到数百年后才复活，继续执行计划。\n\n### 第一幕「荣花与炎日之途」与第二幕「黑石湮落白石下」（5.0）\n\n旅行者来到纳塔，结识了流泉之众的玛拉妮、花翼之集的卡齐娜、竞人族的基尼奇等人。纳塔正处在一场以部族比赛形式出现的「归火圣夜巡礼」中，表面热闹，底下是深渊不断渗透的危机。\n\n卡齐娜在一次事件中落入深渊之手，众人联手营救。救回卡齐娜的同时，众人还净化了被深渊污染的大灵，玛拉妮的古名也因帮助卡齐娜而觉醒。与此同时，愚人众执行官第一席「队长」试图抢夺神之心，被玛薇卡击败，在欧洛伦的帮助下逃脱。事后，玛薇卡邀请旅行者作为「第七位英雄」参与拯救纳塔的行动。\n\n### 第三幕「镜与谜烟的彼方」（5.1）\n\n队长战败后，没有再去打神之心的主意，但他拯救纳塔的目的没有变。他认为玛薇卡背负的责任太重，迟早会错过动用备选方案的时机。他的备选方案原本是：用神之心抽空整个夜神之国的灵魂和记忆，编织一张大网包住地脉，抵挡深渊侵蚀。\n\n这次他想从根源解决问题：重构地脉。为此他找到了古龙时代留下的「秘源机关」。玛薇卡派人阻止，计划失败；过程中欧洛伦得到大灵认可，成为六英杰之一。而秘源机关的启动，也唤醒了掌控夜神之国的「夜神」。\n\n### 第四幕「命定将焚的虹光」（5.2）与幕间「万火归一」\n\n这两段主要揭示玛薇卡计划的全貌和她要付出的代价。玛薇卡击退深渊的强大力量来自「死之执政」，代价是她注定要死，而且是「因果律」级别的死亡，可以推迟，却无法取消。\n\n幕间「万火归一」回到 500 年前：玛薇卡与松伽塔、万杰鲁、孟尼利克、图帕克等古代英雄并肩作战，烬寂海之战中，英雄们一个个牺牲。玛薇卡在家庭午餐上与妹妹伊妮道别，伊妮发誓要找到办法去五百年后与她重逢。\n\n### 第五幕「炽烈的还魂诗」（5.3）\n\n最终决战打响。由于地脉受损，战死者的灵魂无法回到夜神之国，只能消散在大地上。决战中，夜神之国里已逝的灵魂也纷纷现身为生者助战，伊妮、阿伽娅、维查玛等熟悉的面孔都在其中。旅行者与玛薇卡合力取得了决战武器「焚耀千阳」，夜神也为旅行者道出了属于 TA 的古名。旅行者在六大部族的信仰加持下，与玛薇卡一起攻入深渊巢穴。\n\n胜利的代价由队长承担。他用自己的方式代替玛薇卡付出了那份「注定的死亡」：把自己与夜神之国、与纳塔的亡魂绑在一起，让玛薇卡得以活下来。\n\n最特别的是神之心的去向。队长在与玛薇卡一战后，就已致函女皇请求解除自己夺取神之心的任务，并得到许可，所以神之心依然保管在玛薇卡手中。不过玛薇卡也提醒旅行者，纳塔的神之心是女皇计划中所需的最后一枚棋子，女皇不会罢手。\n\n### 第六幕「你存在的时空」（5.7）\n\n这一幕回到血亲线。作为血亲计划的一环，深渊教团开始在纳塔活动，玛薇卡和纳塔的守护者们进入戒备，戴因也第一次以队友身份在前线并肩作战。随着旅行者深入深渊教团的势力范围，血亲长期隐藏的计划逐渐浮出水面。\n\n新角色丝柯克在这一幕登场：她来自深渊深处，师从深渊中的强者，是理解「世界之外」的关键人物。这一幕的结尾，旅行者需要决定是否把一把「休眠舱钥匙」交给一个叫蒂莱尔的人，这个选择与血亲的计划直接相关。\n\n## 第六章「空月之歌」：挪德卡莱与重返须弥（5.8–6.6）\n\n「空月之歌」是至冬的前奏，也是博士这条反派线的终章。挪德卡莱位于至冬最南端，是一片仰望月亮的土地。故事围绕「少女」哥伦比娅找回身份、博士企图夺取月亮的力量展开，最后又绕回须弥，让博士在世界树下迎来结局。整章贯穿「回家」的主题，从开篇《归途》到收尾《归乡》前后呼应。\n\n### 前情：月亮的往事\n\n这一章揭开了提瓦特远古的另一段历史：\n\n- 很久以前，天上有三轮月亮：恒月、霜月、虹月，各由一位女神执掌。她们代替离开提瓦特的龙王尼伯龙根维系这颗星球的运转。\n- 后来，三月女神接纳了从天外降临的「天理」法涅斯，于是被归来的尼伯龙根囚禁在月亮的倒影里，三轮月亮也被改造成对抗天理的武器。\n- 在「葬火之年」的大战中，三位女神全部陨落，两轮月亮破碎，只有霜月保存了下来。恒月女神的遗骸凝成了「月髓」，被挪德卡莱的「霜月之子」部族当作圣物供奉至今。\n- 多年以后，哥伦比娅从霜月中诞生，被霜月之子奉为预言中的新神，却不被提瓦特的法则接纳，力量和记忆都残缺不全，最后成了愚人众执行官第三席「少女」。\n\n### 序奏「归途」（5.8）\n\n故事从纳塔出发，以机械少女伊涅芙踏上归乡之路为起点。旅行者随她来到挪德卡莱，第一次接触到与「烬寂海」和古老飞船有关的线索。\n\n### 第一幕「雪浪与苍林之舞」、第二幕「尘与灯的挽歌」（6.0）\n\n旅行者来到那夏镇，结识了挪德卡莱的几方势力：崇拜月亮的霜月之子（领袖菈乌玛）、守护灯火的菲林斯、经营「秘闻馆」的奈芙尔，以及在当地驻扎的愚人众。这片土地正被一种叫「狂猎」的诡异现象袭扰。\n\n菈乌玛想让族人摆脱对神明的依赖，她私下拜托哥伦比娅不要在霜月之子面前显灵。旅行者也在夜里循着歌声见到了哥伦比娅，但她态度飘忽，像一个「缺失了序章的故事」。众人一起前往愚人众的「月矩力」研究基地寻找失窃的圣物「月髓」，发现博士正在挪德卡莱利用月亮的力量做实验。众人修复大炮驱散狂猎后，前往希汐岛追查与飞船有关的记忆。\n\n### 第三幕「不存在的国土」、第四幕「回望湮灭的月光」（6.1）\n\n「猎月人」借助月矩力光束顺利复活，新的危机笼罩挪德卡莱。西风骑士团大团长法尔伽从安瓦蒂尼尔湖归来，帮众人制定作战方案，挪德卡莱各方空前团结。\n\n众人追查中找到了博士的秘密实验室。在对抗猎月人的过程中，哥伦比娅力量透支，濒临消亡，而她的存在也落入了博士的掌控之中。\n\n### 第五幕「终北的夜行诗」、第六幕「散于晨雾的月芒」（6.2）\n\n狂猎平息后，挪德卡莱迎来「祈月之夜」，这是月亮离提瓦特最近的日子。阿贝多与杜林也在这一段加入队伍，众人一起寻找拯救哥伦比娅的办法。\n\n祈月之夜，哥伦比娅一心奔向月亮，却遭到博士截杀。为了不让博士拿到完整的三月权柄，也为了保护同伴，她主动跳进了「月之门」。\n\n第六幕换成哥伦比娅的视角：月之门连接着过去的时空，她逆着时间回到三月女神尚在的年代，见到了三位「姐姐」。她从初代月神手中继承了完整的权能，找回了自己的真名「哥伦比娅·希珀塞莱尼娅」，把神体化作月光，只把灵魂留作回来的锚点。\n\n### 第七幕「如果在冬夜，一个旅人」、第八幕「真实之月」（6.3）\n\n挪德卡莱的天空被博士的阴谋遮蔽。流浪者与「木偶」桑多涅加入这场战斗，旅行者在众人掩护下面见了三月女神，并做出关键抉择。\n\n最终决战中，哥伦比娅在众人接应下作为完整的月神重临提瓦特，与旅行者一起击败了博士。月 亮回到了它的故乡，挪德卡莱也在月光下迎来新的明天。章节结尾，桑多涅回到了故乡枫丹，与开篇伊涅芙的「归途」形成呼应。\n\n但博士并没有真正死去：在挪德卡莱倒下的，只是他众多「切片」之一，本体早已离开。\n\n### 第九幕「身土坏空，五蕴识转」、第十幕「道成千壑，因果异灭」（6.6）\n\n这两幕回到须弥，接上第三章留下的线头。世界树出现异常，纳西妲陷入昏迷，须弥的众人再次集结。旅行者带着纳西妲去找古老的龙王阿佩普交涉，又一路深入沙漠中的居尔城废墟。\n\n真相是博士本体的终极计划：入侵世界树，用赤王留下的科技「阿如」替换它，然后放火烧掉世界树。根据玩家梳理，结局有几个关键点：\n\n- 世界树大半被焚毁，「阿如」取代了世界树的位置。\n- 纳西妲放弃了世界树的权柄，这个决定得到了三位执政的共同认可。\n- 火神之心在烧树中下落不明。\n- 博士本体最终被自己不同年龄段的切片反噬而死。愚人众执行官第五席「公鸡」也紧急联络纳西妲，表示博士早已不代表愚人众，他的所作所为是个人行为。\n\n世界树被烧，意味着天理规划好的「命运」第一次有了被改写的可能。这为至冬篇的主题埋下了伏笔。\n\n## 第七章·至冬「无神怜爱的雪国」（7.0–7.1，目前最新）\n\n至冬篇正在连载，目前已更新四幕。核心冲突是：冰之女皇准备用收集来的神之心正面挑战天理，而天理派出了「死之执政」若娜瓦来阻挠。7.1 的结尾，若娜瓦在垂死之际摧毁了镇压七国的天钉，留下了整个提瓦特的危机。\n\n### 至冬是个什么样的国家\n\n至冬位于大陆最北端，常年被严寒和暴风雪笼罩，依靠一种叫「克什尼克」的能源取暖，用铁路连接稀疏的聚落。首都至冬堡繁华热闹，也是愚人众的总部。这里的神明冰之女皇（安娜丝塔夏）执掌的理念是「爱」，但她多年来对天理怀着强烈的敌意，愚人众收集神之心正是为了她的反抗计划。\n\n至冬篇有两个关键计划：\n\n- 「严冬计划」：女皇为了节约能源制定的计划。能源缩减后燃料不足、气温骤降，所以叫「严冬」。民间对此怨声载道。\n- 「槲寄生计划」：女皇研发的对抗天理的武器。\n\n### 第一幕「无神怜爱的雪国」（7.0）\n\n旅行者和派蒙从挪德卡莱启程，哥伦比娅等人为他们送行。旅行者搭乘列车穿越冰原进入至冬，途中获得了一件叫「灰眸」的工具，可以抵御严寒、召唤列车、制造冰造物。\n\n在至冬，旅行者结识了一群新面孔：冬之猎手阿罗夏、科洛列夫茨基剧团的首席芭蕾舞者奥黛塔（同时是愚人众「女士」一系的刺客）、首席歌唱家沃雅妮莎。旅行者也与老熟人重逢：在至冬见到了「木偶」桑多涅，公子达达利亚也回到了故乡，他体弱的妹妹冬妮娅第一次登场。\n\n这一幕的另一条线是派蒙。槲寄生计划推进时，派蒙身体出现异样。愚人众执行官首席「丑角」皮耶罗登场，他似乎早就认识派蒙，并亲口证实：派蒙是天空岛的造物，她失去记忆可能是受了某种诅咒。冰之女皇本人也首次正式登场，至此尘世七执政全部亮相。\n\n### 第二幕「死魂灵的夜曲」（7.0）\n\n旅行者在至冬堡深入了解这个国家：在老庭院餐厅、皇都评议会、科洛列夫茨基剧院之间穿梭，旁听评议会，与民间组织的新队友一起刺探严冬计划的内情。\n\n至冬城里接连有人离奇死亡，剧院中甚至发生了集体死亡事件，整段剧情像一场「狼人杀」。目击者米提亚在暴风雪中昏迷前看到了某种东西，用咬破的手指写下了一颗「眼睛」的形状。真相揭开时，「死之执政」若娜瓦原来一直伪装成身边的人，藏在旅行者一行之中。\n\n若娜瓦是天理座下的「四影」之一，负责引导灵魂进入地脉。她亲自出手干扰严冬计划和槲寄生计划，同时盯上了派蒙，想「回收」她。伪装被戳穿后，米提亚和旅行者选择正面直视死神。至冬目前还无法轻易应付这种级别的敌人，科学家和政治、军事领袖共同决定暂停严冬计划。\n\n### 第三幕「白夜似梦初醒」、第四幕「往冥府的安魂歌」（7.1）\n\n肆虐的魔兽陨落后，女皇凯旋重归至冬宫，但严冬计划仍然暂停，死之诅咒在蔓延，民众惶惶不安。为了防止生死之力篡改记忆，至冬人甚至习惯每天把自己的记忆刻录下来。\n\n旅行者终于与女皇面对面，她揭开了自己多年收集神之心背后的真正策略，并邀请旅行者担任她的特使。这一段刻画了女皇的另一面：她并不想以神的权能去「施予爱」，而是想发自内心地爱着至冬。戴因斯雷布也受丑角邀请来到了至冬。\n\n为了对抗死之诅咒，众人借助冬契军年轻指挥官薇斯纳的权能，汇聚众人的生命力凝成「生之印」。与此同时，炼金术士「黄金」莱茵多特以「生之执政」的身份出现，让局势更加复杂。女皇与莱茵多特的对谈信息量巨大，根据玩家梳理：\n\n- 女皇曾见过与天理关系密切的神秘存在阿斯莫代，并掌握相关情报。\n- 500 年前，第三降临者曾登上天空岛与天理谈判，以自己的生命换取了女皇的复活。这段往事把女皇、降临者与坎瑞亚的覆灭联系在了一起，也解释了女皇为什么对天理怀有如此深的仇恨。\n\n最终决战中，若娜瓦在算计下失去了死之权能，权能被天理收回；丑角出手发动了毁灭性的一击。但重伤濒死的若娜瓦在最后一刻启动「地原胚质」，摧毁了钉在七国上空的「寒天之钉」。剧情结束后，蒙德、璃月等各国的角色都抬头看到了天上的异象，整个提瓦特面临被「圣土化」的威胁。\n\n7.1 就停在这个悬念上。下一个版本 7.2 预计在 11 月初上线。\n\n## 贯穿全篇的几条线索\n\n七国走完，主线其实一直在推三条线：愚人众收集神之心、旅行者追寻血亲、以及提瓦特背后「天理」的真相。下面把它们收拢一下，方便对照。\n\n### 七颗神之心的去向\n\n| 神之心 | 怎么离开原主的 | 目前在谁手里 |\n| --- | --- | --- |\n| 风（巴巴托斯） | 蒙德篇结尾被「女士」强夺 | 愚人众（至冬） |\n| 岩（摩拉克斯） | 钟离主动交给「女士」，是与女皇的交易 | 愚人众（至冬） |\n| 雷（巴尔泽布） | 八重神子交给「散兵」，后被纳西妲夺回，又被博士带走 | 愚人众（至冬） |\n| 草（布耶尔） | 纳西妲与博士交易，换取「世界真相」的情报 | 愚人众（至冬） |\n| 水（芙卡洛斯） | 水神破解预言后交给「仆人」 | 愚人众（至冬） |\n| 火（玛薇卡） | 队长主动放弃夺取，留在玛薇卡手中 | 据玩家梳理，在须弥烧树时下落不明 |\n| 冰（冰之女皇） | 女皇自己的 | 冰之女皇 |\n\n### 愚人众执行官现状\n\n| 席位 | 执行官 | 目前状况 |\n| --- | --- | --- |\n| 首席 | 丑角·皮耶罗 | 活跃，参与对抗若娜瓦 |\n| 第一席 | 队长 | 在纳塔为玛薇卡承担了「注定的死亡」 |\n| 第二席 | 博士·多托雷 | 本体在须弥烧树后被自己的切片反噬而死 |\n| 第三席 | 少女·哥伦比娅 | 继承三月权能，成为完整的月神 |\n| 第四席 | 仆人·阿蕾奇诺 | 持有水神之心 |\n| 第五席 | 公鸡·普契涅拉 | 在至冬篇出场 |\n| 第六席 | 散兵 | 已脱离愚人众，以「流浪者」身份活动 |\n| 第七席 | 木偶·桑多涅 | 在挪德卡莱结局回到故乡枫丹，至冬篇再次出场 |\n| 第八席 | 女士 | 在稻妻决斗后被雷电将军处决 |\n| 第九席 | 富人·潘塔罗涅 | 在至冬篇出场 |\n| 第十一席 | 公子·达达利亚 | 回到至冬，与家人团聚 |\n\n### 血亲线走到哪了\n\n- 璃月：第一次重逢，血亲已是深渊教团首领，留下「我们终将重逢」。\n- 稻妻、须弥：通过戴因和「卡利贝尔」的往事，了解到血亲 500 年前目睹了坎瑞亚遗民在天理诅咒下的惨剧，这是 TA 与天理为敌的原因。\n- 枫丹：血亲讲述「睡前故事」，揭开龙王与天理的创世之战。\n- 纳塔：深渊教团按血亲的计划在纳塔行动，计划的轮廓开始显现。\n- 至冬：血亲本人暂未在主线正面登场。\n\n### 还没解开的谜团\n\n- 天钉被毁后的「圣土化」危机会如何收场。\n- 冰之女皇的终极计划，以及她与坎瑞亚、第三降临者之间的完整往事。\n- 派蒙作为天空岛造物的真正用途，以及她与天理的关系。\n- 血亲的最终计划，以及双子重逢的方式。\n- 开场拦下双子的那位「天理的维系者」究竟是谁。\n\n### 资料来源\n\n早期章节依据游戏剧情整理。6.x 后半段与至冬篇参考了以下来源，其中部分细节来自玩家梳理，以游戏内容为准：\n\n- [魔神任务 - 原神 BWIKI](https://wiki.biligame.com/ys/魔神任务)\n- [空月之歌 - 原神 BWIKI](https://wiki.biligame.com/ys/空月之歌)\n- [「往冥府的安魂歌」- 原神 BWIKI](https://wiki.biligame.com/ys/「往冥府的安魂歌」)\n- [纳塔 - 原神 BWIKI](https://wiki.biligame.com/ys/纳塔)\n- [危途疑踪 - 原神 BWIKI](https://wiki.biligame.com/ys/危途疑踪)\n- [至冬 - 维基百科](https://zh.wikipedia.org/wiki/至冬)\n- [哥伦比娅 - 维基百科](https://zh.wikipedia.org/wiki/哥倫比婭)\n- [《原神》7.0 版本上线 - 巴哈姆特](https://gnn.gamer.com.tw/detail.php?sn=309750)\n- [《原神》7.1 版本上线 - 巴哈姆特](https://gnn.gamer.com.tw/detail.php?sn=312222)\n- [纳塔 5.3 主线终章讨论 - 知乎](https://zhuanlan.zhihu.com/p/17752966271)\n- [纳塔新剧情梳理 - 腾讯新闻](https://news.qq.com/rain/a/20241011A05QV700)\n- [7.0 派蒙身世揭秘 - 什么值得买](https://post.smzdm.com/p/a9585poe/)\n- [原神须弥烧树剧情解析 - 233乐园](https://www.233leyuan.com/post-detail/2057295451198828544)\n- [5.6 版本「悖理」- 机核](https://www.gcores.com/articles/197945)\n";
+
+</script>
+<script>
+/*
+ * 提瓦特世界观地图 —— 页面程序
+ *
+ * 完全在本地运行：数据来自 data/genshin_world_data.js
+ * （改完 data/genshin_world_data.json 后，双击「更新数据.bat」就会重新生成它）。
+ * 不联网、不需要服务器、不需要安装任何东西。
+ */
+(function () {
+  'use strict';
+
+  // ================= 小工具 =================
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs, parent) {
+    const el = document.createElementNS(SVGNS, tag);
+    if (attrs) for (const k in attrs) el.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const store = {
+    get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* 浏览器不允许保存时忽略 */ } },
+    del(k) { try { window.localStorage.removeItem(k); } catch (e) { /* 同上 */ } },
+  };
+  function hashStr(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0) / 4294967295;
+  }
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+
+  const STORAGE_KEY = 'teyvat-map.progress';
+  const PUBLISHED = window.TEYVAT_PUBLISHED === true; // 打包发布到网上的版本会设成 true
+  const UI_KEY = 'teyvat-map.ui';
+
+  // 七国元素色
+  const ELEMENT_COLOR = { '风': '#4fd8b0', '岩': '#f2b544', '雷': '#b583f2', '草': '#8bd14b', '水': '#3fa9f5', '火': '#f45b3a', '冰': '#a6e1f5' };
+  const NEUTRAL = '#d8d2bf';
+  const LAYER_NAME = { surface: '地表', sky: '天空', underground: '地下' };
+
+  // 关系连线的分类和颜色
+  const REL_CATS = [
+    { key: 'hostile', name: '对立 / 操纵', color: '#ef6b6b', types: ['conflict', 'manipulates', 'disowns'] },
+    { key: 'ally', name: '同伴 / 合作', color: '#4fd8b0', types: ['ally', 'companion', 'friend', 'colleague', 'guardian', 'worship', 'invites', 'rival_then_ally', 'conflict_then_ally'] },
+    { key: 'bond', name: '亲缘 / 传承', color: '#f1cf7a', types: ['family', 'same_being', 'creator', 'successor', 'origin', 'returns_power', 'sacrifice'] },
+    { key: 'deal', name: '契约 / 交易', color: '#b583f2', types: ['contract'] },
+    { key: 'other', name: '统领 / 复杂 / 其他', color: '#8fa6d6', types: ['leads', 'complicated', 'knows'] },
+  ];
+  const relCat = t => REL_CATS.find(c => c.types.includes(t)) || REL_CATS[REL_CATS.length - 1];
+
+  /*
+   * 防剧透补丁
+   * 数据里有少数字段本身不带 reveal_at，但直接显示就会剧透（比如名字）。
+   * until 是幕 id：进度还没到这一幕时，用 value 代替原来的内容。
+   */
+  const SPOILER_PATCHES = {
+    character: {
+      'dvalin': {
+        name: [{ until: 'prologue-2', value: '风魔龙' }],
+        summary: [{ until: 'prologue-2', value: '袭击蒙德城的巨龙' }],
+      },
+      'wanderer': { name: [{ until: 'interlude-3', value: '散兵' }] },
+      'raiden-ei': { name: [{ until: 'ch2-3', value: '雷电将军' }] },
+      'sibling': { factions: [{ until: 'ch1-4', value: [] }] },
+      'ororon': { summary: [{ until: 'ch5-3', value: '纳塔的青年，曾协助队长' }] },
+    },
+    faction: {
+      'abyss-order': { description: [{ until: 'ch1-4', value: '操纵魔物、与神明为敌的神秘组织' }] },
+    },
+  };
+
+  // 示意地图上，把七国连成一整块大陆用的「填充点」：[x, y, 半径]
+  const LAND_FILL = [
+    [0.50, 0.45, 70], [0.52, 0.58, 70], [0.56, 0.40, 60], [0.47, 0.70, 60], [0.40, 0.68, 60], [0.33, 0.48, 60],
+    [0.36, 0.38, 55], [0.66, 0.21, 55], [0.70, 0.15, 55], [0.86, 0.12, 55], [0.66, 0.41, 55], [0.58, 0.67, 55],
+    [0.74, 0.46, 45], [0.46, 0.36, 55], [0.30, 0.62, 55], [0.22, 0.33, 45], [0.50, 0.30, 45], [0.62, 0.74, 40],
+    [0.28, 0.72, 45], [0.44, 0.84, 45], [0.80, 0.20, 40],
+  ];
+
+  // ================= 启动 =================
+  if (window.GENSHIN_DATA) safeStart(window.GENSHIN_DATA);
+  else showLoadError('notfound');
+
+  function safeStart(data) {
+    try { start(data); } catch (err) { console.error(err); showLoadError('crash', err); }
+  }
+
+  function showLoadError(kind, err) {
+    const box = $('#loadError');
+    box.hidden = false;
+    const msg = kind === 'notfound'
+      ? `<p>没有找到网页要用的数据文件 <code>data/genshin_world_data.js</code>。请这样做：</p>
+         <ol><li>打开「原神地图」文件夹，双击 <b>更新数据.bat</b>，看到「成功」后按任意键关闭黑色窗口。</li>
+         <li>回到这个页面，按键盘上的 <b>F5</b> 刷新。</li></ol>
+         <p>也可以点下面的按钮，直接选 <code>data</code> 文件夹里的 <b>genshin_world_data.json</b>（只对这一次打开有效）。</p>`
+      : `<p>读取数据时出错了：</p><pre>${esc((err && err.message) || err)}</pre>
+         <p>多半是 json 文件格式有问题（比如少了逗号、引号或括号）。改好后双击「更新数据.bat」，再按 F5 刷新。</p>`;
+    box.innerHTML = `<div class="modal-card"><h2>还不能显示地图</h2>${msg}
+      <p><label class="btn primary">选择 json 文件…<input type="file" accept=".json,application/json" hidden id="pickJson"></label></p>
+      <p class="small muted" id="pickMsg"></p></div>`;
+    $('#pickJson').addEventListener('change', e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let data;
+        try { data = JSON.parse(reader.result); } catch (er) { $('#pickMsg').textContent = '这个文件不是有效的 json：' + er.message; return; }
+        box.hidden = true;
+        safeStart(data);
+      };
+      reader.readAsText(f, 'utf-8');
+    });
+  }
+
+  function start(D) {
+    // ================= 数据索引 =================
+    const acts = (D.acts || []).slice().sort((a, b) => a.order - b.order);
+    if (!acts.length) throw new Error('数据里没有 acts（主线各幕）');
+    const actById = new Map(acts.map(a => [a.id, a]));
+    const chapterById = new Map((D.chapters || []).map(c => [c.id, c]));
+    const chapterFirst = new Map();
+    for (const a of acts) if (!chapterFirst.has(a.chapter)) chapterFirst.set(a.chapter, a);
+    const nations = D.nations || [];
+    const nationById = new Map(nations.map(n => [n.id, n]));
+    const characters = D.characters || [];
+    const charById = new Map(characters.map(c => [c.id, c]));
+    const factions = D.factions || [];
+    const facById = new Map(factions.map(f => [f.id, f]));
+    const relationships = D.relationships || [];
+    const gnoses = D.gnoses || [];
+    const events = (D.events || []).slice();
+    const eventById = new Map(events.map(e => [e.id, e]));
+
+    const hasXY = p => !!p && typeof p.x === 'number' && typeof p.y === 'number';
+    const locs = new Map();
+    for (const n of nations) {
+      const m = n.map || {};
+      locs.set(n.id, { id: n.id, kind: 'nation', name: n.name, nation: n.id, x: m.x, y: m.y, layer: m.layer || 'surface', note: '' });
+      for (const r of n.regions || []) {
+        const rm = r.map || {};
+        locs.set(r.id, { id: r.id, kind: 'region', name: r.name, nation: n.id, x: rm.x, y: rm.y, layer: rm.layer || m.layer || 'surface', note: r.note || '' });
+      }
+    }
+    for (const s of D.special_locations || []) {
+      const sm = s.map || null;
+      locs.set(s.id, {
+        id: s.id, kind: 'special', name: s.name, nation: null,
+        x: sm ? sm.x : null, y: sm ? sm.y : null, layer: (sm && sm.layer) || 'surface', note: s.note || '', reveal_at: s.reveal_at,
+      });
+    }
+
+    const orderOf = id => (id == null ? -Infinity : (actById.has(id) ? actById.get(id).order : Infinity));
+    events.sort((a, b) => orderOf(a.act) - orderOf(b.act) || String(a.id).localeCompare(String(b.id), 'en', { numeric: true }));
+
+    // 每个地点最早发生事件的幕（用来决定地点说明什么时候可以显示）
+    const firstEventAt = new Map();
+    for (const e of events) {
+      if (!e.location) continue;
+      const o = orderOf(e.act);
+      if (!firstEventAt.has(e.location) || o < firstEventAt.get(e.location)) firstEventAt.set(e.location, o);
+    }
+
+    // 关系两端可能是人物、势力或地点（有个别 id 同时是地点和势力，按 人物 > 势力 > 地点 的顺序认）
+    function endpoint(id) {
+      if (charById.has(id)) return { kind: 'char', id };
+      if (facById.has(id)) return { kind: 'fac', id };
+      if (locs.has(id)) return { kind: 'loc', id };
+      return null;
+    }
+    const nodeKey = ep => ({ char: 'c:', fac: 'f:', loc: 'l:' }[ep.kind]) + ep.id;
+
+    // ---------- 数据检查（只提示，不影响使用） ----------
+    const warnings = [];
+    const chkAct = (id, where) => { if (id != null && !actById.has(id)) warnings.push(`${where}：找不到幕「${id}」`); };
+    for (const c of characters) {
+      chkAct(c.first_act, `人物「${c.name}」的 first_act`);
+      (c.secrets || []).forEach(s => chkAct(s.reveal_at, `人物「${c.name}」的秘密`));
+      if (c.nation && !nationById.has(c.nation)) warnings.push(`人物「${c.name}」：找不到国家「${c.nation}」`);
+      (c.factions || []).forEach(f => { if (!facById.has(f)) warnings.push(`人物「${c.name}」：找不到势力「${f}」`); });
+    }
+    for (const r of relationships) {
+      chkAct(r.reveal_at, `关系「${r.label}」`);
+      if (!endpoint(r.source)) warnings.push(`关系「${r.label}」：找不到「${r.source}」`);
+      if (!endpoint(r.target)) warnings.push(`关系「${r.label}」：找不到「${r.target}」`);
+    }
+    for (const e of events) {
+      chkAct(e.act, `事件 ${e.id}`);
+      if (e.location && !locs.has(e.location)) warnings.push(`事件 ${e.id}：找不到地点「${e.location}」`);
+      (e.characters || []).forEach(c => { if (!charById.has(c)) warnings.push(`事件 ${e.id}：找不到人物「${c}」`); });
+    }
+    for (const s of D.special_locations || []) chkAct(s.reveal_at, `特殊地点「${s.name}」`);
+    for (const g of gnoses) {
+      (g.path || []).forEach(p => {
+        chkAct(p.act, `${g.element}之神之心的流转`);
+        if (p.holder && !charById.has(p.holder)) warnings.push(`${g.element}之神之心：找不到持有者「${p.holder}」`);
+      });
+    }
+    if (warnings.length) console.warn('数据检查发现问题：\n' + warnings.join('\n'));
+
+    // ================= 状态 =================
+    let ui = {};
+    try { ui = JSON.parse(store.get(UI_KEY) || '{}') || {}; } catch (e) { ui = {}; }
+    const state = {
+      pid: null, P: 0, sel: null,
+      layers: Object.assign({ surface: true, sky: true, underground: true }, ui.layers || {}),
+      fNation: '', fFaction: '',
+      neighbors: ui.neighbors !== false,
+      edgeLabels: ui.edgeLabelsAll === true,
+      hideIsolated: ui.hideIsolated === true,
+      tab: 'detail',
+      layout: ['both', 'map', 'graph'].includes(ui.layout) ? ui.layout : 'both',
+    };
+    const saveUI = () => store.set(UI_KEY, JSON.stringify({ layers: state.layers, neighbors: state.neighbors, edgeLabelsAll: state.edgeLabels, hideIsolated: state.hideIsolated, layout: state.layout }));
+    const defaultPid = D.meta && actById.has(D.meta.player_progress) ? D.meta.player_progress : acts[0].id;
+    // 第一次打开（没保存过进度）的人，先在弹窗里选进度；选好之前，页面只按最开头一幕显示，避免剧透
+    const savedPid = store.get(STORAGE_KEY);
+    const firstVisit = !(savedPid && actById.has(savedPid));
+    state.pid = firstVisit ? acts[0].id : savedPid;
+    state.P = actById.get(state.pid).order;
+    const seen = id => orderOf(id) <= state.P;
+
+    // ================= 文字工具 =================
+    const CN = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二', '十三', '十四', '十五'];
+    function chapterShort(ch) {
+      if (ch === 'prologue') return '序章';
+      if (ch === 'interlude') return '间章';
+      const m = /^ch(\d+)$/.exec(ch || '');
+      return m ? `第${CN[+m[1]] || m[1]}章` : (ch || '');
+    }
+    function actPart(a) {
+      const id = String(a.id);
+      const suf = id.slice(id.lastIndexOf('-') + 1);
+      if (suf === 'interlude') return '幕间';
+      if (suf === '0') return '序幕';
+      const n = Number(suf);
+      return Number.isInteger(n) ? `第${CN[n] || n}幕` : suf;
+    }
+    const actShort = a => `${chapterShort(a.chapter)} ${actPart(a)}`;
+    const actFull = a => `${actShort(a)}「${a.title}」`;
+    // 还没玩到的幕只显示编号，不显示标题
+    const actName = id => {
+      const a = actById.get(id);
+      if (!a) return '（未知的幕）';
+      return a.order <= state.P ? actFull(a) : actShort(a);
+    };
+    const rankName = n => (n === 0 ? '首席' : `第${CN[n] || n}席`);
+
+    function patched(kind, id, field, original) {
+      const rules = SPOILER_PATCHES[kind] && SPOILER_PATCHES[kind][id] && SPOILER_PATCHES[kind][id][field];
+      if (rules) for (const r of rules) if (!seen(r.until)) return r.value;
+      return original;
+    }
+    const charName = c => patched('character', c.id, 'name', c.name);
+    const charSummary = c => patched('character', c.id, 'summary', c.summary || '');
+    const charFactions = c => patched('character', c.id, 'factions', c.factions || []);
+    const allSecretsSeen = c => (c.secrets || []).every(s => seen(s.reveal_at));
+    // 别名（比如「巴巴托斯」）常常就是秘密本身，所以要等秘密全部揭晓后才显示
+    const charAliases = c => (allSecretsSeen(c) ? (c.aliases || []) : []).filter(a => a !== charName(c));
+    const facDesc = f => patched('faction', f.id, 'description', f.description || '');
+
+    function nationColor(nid) {
+      const n = nationById.get(nid);
+      if (!n) return NEUTRAL;
+      if (n.element && ELEMENT_COLOR[n.element]) return ELEMENT_COLOR[n.element];
+      if (n.parent) return '#c8c2f4'; // 挪德卡莱：月光银紫
+      return NEUTRAL;
+    }
+    const charColor = c => (c.id === 'traveler' ? '#ffe28a' : nationColor(c.nation));
+    const facColor = f => nationColor(f.nation);
+    const locColor = l => (l.layer === 'sky' ? '#9be8ff' : l.layer === 'underground' ? '#b88cff' : nationColor(l.nation));
+    function nationReached(nid) {
+      const n = nationById.get(nid);
+      if (!n || !n.chapter) return true;
+      const fa = chapterFirst.get(n.chapter);
+      return fa ? fa.order <= state.P : true;
+    }
+
+    // ================= 按进度计算「能看到什么」 =================
+    let V = null;
+    let spoilerTokens = [];
+
+    function computeVisible() {
+      const v = {
+        chars: new Set(), facs: new Set(), locs: new Set(), events: [], rels: [], members: [],
+        evByLoc: new Map(), evByChar: new Map(), locsByChar: new Map(), charsByLoc: new Map(),
+      };
+      for (const c of characters) if (seen(c.first_act)) v.chars.add(c.id);
+      v.events = events.filter(e => seen(e.act));
+      const evLocs = new Set(v.events.map(e => e.location).filter(Boolean));
+
+      for (const n of nations) if (!n.parent || nationReached(n.id)) v.locs.add(n.id);
+      for (const l of locs.values()) {
+        if (l.kind === 'region') {
+          if (v.locs.has(l.nation) && (nationReached(l.nation) || evLocs.has(l.id))) v.locs.add(l.id);
+        } else if (l.kind === 'special') {
+          if (seen(l.reveal_at)) v.locs.add(l.id);
+        }
+      }
+
+      for (const cid of v.chars) for (const f of charFactions(charById.get(cid))) if (facById.has(f)) v.facs.add(f);
+      const vis = ep => !!ep && (ep.kind === 'char' ? v.chars.has(ep.id) : ep.kind === 'fac' ? v.facs.has(ep.id) : v.locs.has(ep.id));
+      for (const r of relationships) {
+        if (!seen(r.reveal_at)) continue;
+        const a = endpoint(r.source), b = endpoint(r.target);
+        if (!a || !b) continue;
+        if (a.kind === 'fac' && vis(b)) v.facs.add(a.id);
+        if (b.kind === 'fac' && vis(a)) v.facs.add(b.id);
+      }
+      for (const r of relationships) {
+        if (!seen(r.reveal_at)) continue;
+        const a = endpoint(r.source), b = endpoint(r.target);
+        if (vis(a) && vis(b)) v.rels.push({ r, a, b });
+      }
+      for (const cid of v.chars) for (const f of charFactions(charById.get(cid))) if (v.facs.has(f)) v.members.push({ c: cid, f });
+
+      const push = (map, k, val) => { if (!map.has(k)) map.set(k, []); map.get(k).push(val); };
+      const link = (cid, lid) => {
+        if (!v.locsByChar.has(cid)) v.locsByChar.set(cid, new Set());
+        v.locsByChar.get(cid).add(lid);
+        if (!v.charsByLoc.has(lid)) v.charsByLoc.set(lid, new Set());
+        v.charsByLoc.get(lid).add(cid);
+      };
+      for (const e of v.events) {
+        const lid = e.location && v.locs.has(e.location) ? e.location : null;
+        if (lid) push(v.evByLoc, lid, e);
+        for (const cid of e.characters || []) {
+          if (!v.chars.has(cid)) continue;
+          push(v.evByChar, cid, e);
+          if (lid) link(cid, lid);
+        }
+      }
+      for (const { a, b } of v.rels) {
+        if (a.kind === 'char' && b.kind === 'loc') link(a.id, b.id);
+        if (b.kind === 'char' && a.kind === 'loc') link(b.id, a.id);
+      }
+      return v;
+    }
+
+    // 会剧透的名字：还没登场人物的名字/别名、被替换掉的真名、秘密没揭晓前的别名
+    function computeSpoilerTokens() {
+      const tokens = new Set();
+      const add = s => { for (const p of String(s).split(/[\/／·]/)) { const t = p.trim(); if (t.length >= 2) tokens.add(t); } };
+      for (const c of characters) {
+        if (!V.chars.has(c.id)) { add(c.name); (c.aliases || []).forEach(add); continue; }
+        if (charName(c) !== c.name) add(c.name);
+        if (!allSecretsSeen(c)) (c.aliases || []).forEach(add);
+      }
+      for (const cid of V.chars) {
+        const c = charById.get(cid);
+        for (const p of charName(c).split(/[\/／·]/)) tokens.delete(p.trim());
+        for (const a of charAliases(c)) tokens.delete(a);
+      }
+      return [...tokens];
+    }
+    function noteVisible(l) {
+      if (!l.note) return false;
+      const fe = firstEventAt.get(l.id);
+      if (fe != null && fe > state.P) return false;
+      return !spoilerTokens.some(t => l.note.includes(t));
+    }
+
+    function nationEvents(nid) {
+      return V.events.filter(e => {
+        const l = e.location && locs.get(e.location);
+        return l && l.nation === nid && V.locs.has(l.id);
+      });
+    }
+    function nationChars(nid) {
+      const s = new Set();
+      for (const cid of V.chars) if (charById.get(cid).nation === nid) s.add(cid);
+      for (const e of nationEvents(nid)) for (const c of e.characters || []) if (V.chars.has(c)) s.add(c);
+      return s;
+    }
+    function archonOf(n) {
+      const c = n.archon && charById.get(n.archon);
+      if (c && V.chars.has(c.id) && allSecretsSeen(c)) return { cid: c.id };
+      return { text: n.element ? `${n.element}神（身份尚未揭晓）` : '无' };
+    }
+
+    // ================= 剧情详细梳理（来自 data 文件夹里的 .md 文件） =================
+    // 只取「### 」级别、标题里写着某一幕「标题」的段落。章节开头的全章概要会提前说出后面的揭晓，所以不用。
+    const STORY = typeof window.GENSHIN_STORY === 'string' ? window.GENSHIN_STORY : null;
+    const storyByAct = new Map();
+    function inlineMd(s) {
+      return esc(s)
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1') // 链接只保留文字（网页离线使用）
+        .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+    }
+    function mdToHtml(lines) {
+      const out = [];
+      let para = [], list = null, table = null;
+      const flushPara = () => { if (para.length) { out.push(`<p>${inlineMd(para.join(''))}</p>`); para = []; } };
+      const flushList = () => {
+        if (list) { out.push(`<${list.tag}>${list.items.map(i => `<li>${inlineMd(i)}</li>`).join('')}</${list.tag}>`); list = null; }
+      };
+      const flushTable = () => {
+        if (!table) return;
+        const [headRow, ...rows] = table;
+        out.push(`<table><thead><tr>${headRow.map(c => `<th>${inlineMd(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${inlineMd(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`);
+        table = null;
+      };
+      const flushAll = () => { flushPara(); flushList(); flushTable(); };
+      for (const raw of lines) {
+        const line = raw.trim();
+        let m;
+        if (!line) { flushAll(); continue; }
+        if (line.startsWith('|')) {
+          flushPara(); flushList();
+          const cells = line.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+          if (!cells.every(c => /^:?-{2,}:?$/.test(c))) (table = table || []).push(cells);
+          continue;
+        }
+        flushTable();
+        if ((m = /^#{4,6}\s+(.*)$/.exec(line))) { flushAll(); out.push(`<h5>${inlineMd(m[1])}</h5>`); continue; }
+        if ((m = /^[-*]\s+(.*)$/.exec(line))) {
+          flushPara();
+          if (!list || list.tag !== 'ul') { flushList(); list = { tag: 'ul', items: [] }; }
+          list.items.push(m[1]);
+          continue;
+        }
+        if ((m = /^\d+[.、]\s*(.*)$/.exec(line))) {
+          flushPara();
+          if (!list || list.tag !== 'ol') { flushList(); list = { tag: 'ol', items: [] }; }
+          list.items.push(m[1]);
+          continue;
+        }
+        flushList();
+        para.push(line);
+      }
+      flushAll();
+      return out.join('');
+    }
+    if (STORY) {
+      const sections = [];
+      let cur = null;
+      for (const line of STORY.split(/\r?\n/)) {
+        const h = /^(#{1,3})\s+(.*)$/.exec(line);
+        if (h) {
+          cur = h[1].length === 3 ? { title: h[2].trim(), lines: [] } : null;
+          if (cur) sections.push(cur);
+        } else if (cur) cur.lines.push(line);
+      }
+      for (const sec of sections) {
+        sec.acts = acts.filter(a => sec.title.includes(`「${a.title}」`)).map(a => a.id);
+        if (!sec.acts.length) continue;
+        sec.html = mdToHtml(sec.lines);
+        for (const id of sec.acts) if (!storyByAct.has(id)) storyByAct.set(id, sec);
+      }
+    }
+    function storyBlock(actId) {
+      if (!STORY) return '<div class="empty-note">（没有找到剧情梳理文件。把 .md 文件放进 data 文件夹后，双击「更新数据.bat」再刷新网页。）</div>';
+      const sec = storyByAct.get(actId);
+      if (!sec) return '<div class="empty-note">（剧情梳理里没有这一幕的单独段落）</div>';
+      const later = sec.acts.filter(id => orderOf(id) > state.P);
+      if (later.length) {
+        return `<div class="empty-note">剧情梳理把这一幕和后面的「${later.map(id => esc(actName(id))).join('」「')}」写在了同一段。为了防剧透，玩到那里后再显示。</div>`;
+      }
+      const others = sec.acts.filter(id => id !== actId);
+      return `<div class="story">
+          <div class="story-title">${inlineMd(sec.title)}</div>
+          ${others.length ? `<p class="small muted">这一段同时讲了：${others.map(id => esc(actName(id))).join('、')}</p>` : ''}
+          ${sec.html}
+          <p class="small muted story-src">内容来自 data 文件夹里的剧情梳理 md 文件</p>
+        </div>`;
+    }
+
+    // ================= 缩放 / 平移（地图和关系图共用） =================
+    function makeZoom(svg, vp, opts) {
+      const z = { k: 1, tx: 0, ty: 0, k0: 1 };
+      let anim = 0, lastK = null;
+      function apply() {
+        vp.setAttribute('transform', `translate(${z.tx},${z.ty}) scale(${z.k})`);
+        if (z.k !== lastK) { lastK = z.k; if (opts.onScale) opts.onScale(z); }
+      }
+      function size() { const r = svg.getBoundingClientRect(); return { w: r.width, h: r.height }; }
+      function go(k, tx, ty, animate) {
+        cancelAnimationFrame(anim);
+        if (!animate) { z.k = k; z.tx = tx; z.ty = ty; apply(); return; }
+        const s = { k: z.k, tx: z.tx, ty: z.ty }, t0 = performance.now(), dur = 450;
+        const step = now => {
+          let t = Math.min(1, (now - t0) / dur);
+          t = 1 - Math.pow(1 - t, 3);
+          z.k = s.k + (k - s.k) * t; z.tx = s.tx + (tx - s.tx) * t; z.ty = s.ty + (ty - s.ty) * t;
+          apply();
+          if (t < 1) anim = requestAnimationFrame(step);
+        };
+        anim = requestAnimationFrame(step);
+      }
+      function fit(animate) {
+        const b = opts.bounds();
+        const { w, h } = size();
+        if (w < 10 || h < 10 || !b) return false;
+        const pad = 14;
+        const k = Math.min((w - pad * 2) / b.w, (h - pad * 2) / b.h);
+        z.k0 = k;
+        lastK = null;
+        go(k, (w - b.w * k) / 2 - b.x * k, (h - b.h * k) / 2 - b.y * k, animate);
+        return true;
+      }
+      function zoomAt(px, py, f) {
+        cancelAnimationFrame(anim);
+        const k = clamp(z.k * f, z.k0 * 0.6, z.k0 * 10);
+        const r = k / z.k;
+        z.tx = px - (px - z.tx) * r; z.ty = py - (py - z.ty) * r; z.k = k;
+        apply();
+      }
+      function zoomCenter(f) { const { w, h } = size(); zoomAt(w / 2, h / 2, f); }
+      function focus(x, y, mult) {
+        const { w, h } = size();
+        if (w < 10) return;
+        const k = Math.max(z.k, z.k0 * mult);
+        go(k, w / 2 - x * k, h / 2 - y * k, true);
+      }
+      svg.addEventListener('wheel', e => {
+        e.preventDefault();
+        const r = svg.getBoundingClientRect();
+        zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0016)));
+      }, { passive: false });
+      svg.addEventListener('dblclick', e => {
+        const r = svg.getBoundingClientRect();
+        zoomAt(e.clientX - r.left, e.clientY - r.top, 1.6);
+      });
+      let drag = null, pinch = null;
+      const touches = new Map(); // 手机上同时按着的手指，用来做双指缩放
+      const pinchInfo = () => {
+        const [a, b] = [...touches.values()];
+        return { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      };
+      svg.addEventListener('pointerdown', e => {
+        if (e.button !== 0) return;
+        cancelAnimationFrame(anim);
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        try { svg.setPointerCapture(e.pointerId); } catch (er) { /* 忽略 */ }
+        if (touches.size === 2) { drag = null; pinch = pinchInfo(); return; }
+        if (touches.size > 2) return;
+        const grab = opts.grab ? opts.grab(e.target) : null;
+        drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, target: e.target, grab };
+      });
+      svg.addEventListener('pointermove', e => {
+        if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pinch && touches.size >= 2) {
+          const now = pinchInfo(), r = svg.getBoundingClientRect();
+          z.tx += now.x - pinch.x; z.ty += now.y - pinch.y;
+          zoomAt(now.x - r.left, now.y - r.top, now.d / pinch.d);
+          pinch = now;
+          return;
+        }
+        if (!drag || e.pointerId !== drag.id) return;
+        const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly;
+        drag.lx = e.clientX; drag.ly = e.clientY;
+        if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 4) { drag.moved = true; svg.classList.add('dragging'); }
+        if (!drag.moved) return;
+        if (drag.grab) drag.grab.move(dx / z.k, dy / z.k);
+        else { z.tx += dx; z.ty += dy; apply(); }
+      });
+      const end = e => {
+        touches.delete(e.pointerId);
+        if (pinch) {
+          if (touches.size < 2) pinch = null;
+          try { svg.releasePointerCapture(e.pointerId); } catch (er) { /* 忽略 */ }
+          return;
+        }
+        if (!drag || e.pointerId !== drag.id) return;
+        const d = drag;
+        drag = null;
+        svg.classList.remove('dragging');
+        try { svg.releasePointerCapture(e.pointerId); } catch (er) { /* 忽略 */ }
+        if (!d.moved && e.type === 'pointerup' && opts.onTap) opts.onTap(d.target);
+      };
+      svg.addEventListener('pointerup', end);
+      svg.addEventListener('pointercancel', end);
+      const onResize = () => { if (!(opts.onResize && opts.onResize(size()))) fit(false); };
+      if (window.ResizeObserver) new ResizeObserver(onResize).observe(svg);
+      else window.addEventListener('resize', onResize);
+      return { z, fit, zoomCenter, focus };
+    }
+    // 标签和图标的大小：放大时只稍微变大，保持清楚又不挤
+    const labelScale = (z, power) => (1 / z.k) * Math.pow(z.k / z.k0, power);
+
+    // ================= 地图 =================
+    const MW = 1000, MH = 700;
+    const mapSvg = $('#mapSvg');
+    const mapVP = svgEl('g', { class: 'vp' }, mapSvg);
+    const baseImg = svgEl('image', { class: 'base-map', x: 0, y: 0, width: MW, height: MH, preserveAspectRatio: 'none' }, mapVP);
+    const gNationLabels = svgEl('g', {}, mapVP);
+    const gUnder = svgEl('g', {}, mapVP);
+    const gSurf = svgEl('g', {}, mapVP);
+    const gSky = svgEl('g', {}, mapVP);
+
+    // 地点挨得太近时，把图标稍微推开一点（坐标本来就是示意，不影响意思）
+    const dpos = new Map();
+    (function spread() {
+      const pts = [...locs.values()].filter(l => l.kind !== 'nation' && hasXY(l)).map(l => ({ id: l.id, x: l.x * MW, y: l.y * MH }));
+      const MIN = 24;
+      for (let it = 0; it < 150; it++) {
+        let moved = false;
+        for (let i = 0; i < pts.length; i++) {
+          for (let j = i + 1; j < pts.length; j++) {
+            const a = pts[i], b = pts[j];
+            let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+            if (d >= MIN) continue;
+            if (d < 0.01) { const ang = ((i * 47 + j * 113) % 360) * Math.PI / 180; dx = Math.cos(ang); dy = Math.sin(ang); d = 1; }
+            const p = (MIN - d) / 2, ux = dx / d, uy = dy / d;
+            a.x -= ux * p; a.y -= uy * p; b.x += ux * p; b.y += uy * p;
+            moved = true;
+          }
+        }
+        if (!moved) break;
+      }
+      pts.forEach(p => dpos.set(p.id, p));
+    })();
+    // 国家大字可以放的几个位置：地点群的上方、下方、正中
+    const nationLabelPos = new Map(), nationLabelCands = new Map();
+    for (const n of nations) {
+      if (!hasXY(n.map)) continue;
+      const ys = (n.regions || []).filter(r => dpos.has(r.id) && locs.get(r.id).layer === 'surface').map(r => dpos.get(r.id).y);
+      const cx = n.map.x * MW, cy = n.map.y * MH;
+      const top = ys.length ? Math.min(...ys) : cy, bottom = ys.length ? Math.max(...ys) : cy;
+      nationLabelPos.set(n.id, { x: cx, y: cy });
+      nationLabelCands.set(n.id, [
+        { x: cx, y: top, dy: -24 }, { x: cx, y: bottom, dy: 38 }, { x: cx - 60, y: top, dy: -24 }, { x: cx + 60, y: top, dy: -24 }, { x: cx, y: cy, dy: 8 },
+      ]);
+    }
+
+    function buildBaseMap() {
+      const S = 2.5, W = Math.round(MW * S), H = Math.round(MH * S);
+      const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+      const blobs = [];
+      for (const n of nations) {
+        if (hasXY(n.map)) blobs.push([n.map.x, n.map.y, n.id === 'inazuma' ? 40 : (n.parent ? 70 : 100)]);
+        for (const r of n.regions || []) if (hasXY(r.map)) blobs.push([r.map.x, r.map.y, n.id === 'inazuma' ? 26 : 42]);
+      }
+      LAND_FILL.forEach(p => blobs.push(p));
+      // 1) 画出一堆圆，模糊后取阈值，得到圆润的大陆轮廓
+      const c1 = mk(), x1 = c1.getContext('2d');
+      x1.fillStyle = '#fff';
+      for (const [x, y, r] of blobs) { x1.beginPath(); x1.arc(x * MW * S, y * MH * S, r * S, 0, Math.PI * 2); x1.fill(); }
+      const mask = mk(), xm = mask.getContext('2d');
+      xm.filter = `blur(${18 * S}px)`;
+      xm.drawImage(c1, 0, 0);
+      xm.filter = 'none';
+      const img = xm.getImageData(0, 0, W, H), d = img.data;
+      for (let i = 0; i < d.length; i += 4) { const a = d[i + 3]; d[i] = d[i + 1] = d[i + 2] = 255; d[i + 3] = clamp((a - 105) * 8, 0, 255); }
+      xm.putImageData(img, 0, 0);
+      const tinted = (color, blur) => {
+        const c = mk(), x = c.getContext('2d');
+        if (blur) x.filter = `blur(${blur * S}px)`;
+        x.drawImage(mask, 0, 0);
+        x.filter = 'none';
+        x.globalCompositeOperation = 'source-in';
+        x.fillStyle = color;
+        x.fillRect(0, 0, W, H);
+        return c;
+      };
+      // 2) 陆地底色 + 各国元素色
+      const out = mk(), xo = out.getContext('2d');
+      xo.drawImage(mask, 0, 0);
+      xo.globalCompositeOperation = 'source-in';
+      const lg = xo.createLinearGradient(0, 0, 0, H);
+      lg.addColorStop(0, '#2b3552'); lg.addColorStop(1, '#2d3447');
+      xo.fillStyle = lg;
+      xo.fillRect(0, 0, W, H);
+      xo.globalCompositeOperation = 'source-atop';
+      for (const n of nations) {
+        if (!hasXY(n.map)) continue;
+        const col = nationColor(n.id), cx = n.map.x * MW * S, cy = n.map.y * MH * S;
+        const R = (n.id === 'inazuma' ? 120 : n.parent ? 95 : 150) * S;
+        const g = xo.createRadialGradient(cx, cy, 0, cx, cy, R);
+        g.addColorStop(0, hexA(col, 0.55)); g.addColorStop(0.55, hexA(col, 0.26)); g.addColorStop(1, hexA(col, 0));
+        xo.fillStyle = g;
+        xo.beginPath(); xo.arc(cx, cy, R, 0, Math.PI * 2); xo.fill();
+      }
+      // 3) 海岸线和浅海
+      xo.globalCompositeOperation = 'destination-over';
+      xo.drawImage(tinted('rgba(170,210,255,.9)', 1.2), 0, 0);
+      xo.drawImage(tinted('rgba(64,120,190,.55)', 22), 0, 0);
+      baseImg.setAttribute('href', out.toDataURL('image/png'));
+    }
+
+    function starPath(R, r) {
+      let p = '';
+      for (let i = 0; i < 10; i++) {
+        const ang = -Math.PI / 2 + i * Math.PI / 5, rad = i % 2 ? r : R;
+        p += (i ? 'L' : 'M') + (Math.cos(ang) * rad).toFixed(2) + ',' + (Math.sin(ang) * rad).toFixed(2);
+      }
+      return p + 'Z';
+    }
+
+    function renderMap() {
+      [gNationLabels, gUnder, gSurf, gSky].forEach(g => { g.textContent = ''; });
+      const L = state.layers;
+      mapSvg.classList.toggle('only-underground', L.underground && !L.surface && !L.sky);
+      mapSvg.classList.toggle('only-sky', L.sky && !L.surface && !L.underground);
+
+      if (L.surface) {
+        for (const n of nations) {
+          if (!V.locs.has(n.id) || !nationLabelPos.has(n.id)) continue;
+          const p = nationLabelPos.get(n.id), reached = nationReached(n.id);
+          const g = svgEl('g', { class: 'nlabel' + (reached ? '' : ' unreached'), transform: `translate(${p.x},${p.y})`, 'data-sel': 'loc:' + n.id }, gNationLabels);
+          g.__nid = n.id;
+          const inner = svgEl('g', { class: 'sc' }, g);
+          const t = svgEl('text', { 'font-size': 22, fill: nationColor(n.id) }, inner);
+          t.textContent = n.name;
+          if (!reached) { const s = svgEl('text', { class: 'nsub', y: 15 }, inner); s.textContent = '尚未到达'; }
+          svgEl('title', {}, g).textContent = `${n.name}${n.element ? '（' + n.element + '）' : ''}`;
+        }
+      }
+      const noCoord = [];
+      for (const l of locs.values()) {
+        if (l.kind === 'nation' || !V.locs.has(l.id)) continue;
+        if (!hasXY(l)) { noCoord.push(l.id); continue; }
+        if (!L[l.layer]) continue;
+        const p = dpos.get(l.id);
+        const parent = l.layer === 'sky' ? gSky : l.layer === 'underground' ? gUnder : gSurf;
+        const g = svgEl('g', { class: `mk mk-${l.layer}`, transform: `translate(${p.x},${p.y})`, 'data-sel': 'loc:' + l.id }, parent);
+        const inner = svgEl('g', { class: 'sc' }, g);
+        const evCount = (V.evByLoc.get(l.id) || []).length;
+        svgEl('circle', { r: 15, fill: 'transparent' }, inner); // 加大可点范围，手机上好点
+        svgEl('circle', { class: 'selring', r: 13 }, inner);
+        svgEl('circle', { class: 'hlring', r: 12 }, inner);
+        if (l.layer === 'sky') {
+          svgEl('ellipse', { cx: 0, cy: 16, rx: 9, ry: 2.6, fill: 'rgba(0,0,0,.5)' }, inner);
+          svgEl('line', { x1: 0, y1: 9, x2: 0, y2: 15, stroke: 'rgba(155,232,255,.6)', 'stroke-dasharray': '2 2' }, inner);
+          svgEl('circle', { r: 10, fill: 'rgba(155,232,255,.14)', stroke: '#9be8ff', 'stroke-dasharray': '3 2' }, inner);
+          svgEl('path', { d: starPath(7, 3), fill: '#e6faff', stroke: '#7fe3ff', 'stroke-width': 0.8 }, inner);
+        } else if (l.layer === 'underground') {
+          svgEl('circle', { r: 8.5, fill: '#1c0f33', stroke: '#b88cff', 'stroke-width': 1.6, 'stroke-dasharray': '3 2' }, inner);
+          svgEl('path', { d: 'M-4,-2 L4,-2 L0,4 Z', fill: '#c9a6ff' }, inner);
+        } else {
+          if (evCount) svgEl('circle', { class: 'evring', r: 9.5 }, inner);
+          svgEl('circle', { r: 6, fill: locColor(l), stroke: '#fff', 'stroke-width': 1.5 }, inner);
+        }
+        const t = svgEl('text', { class: 'mlabel', x: 13, y: 4 }, inner);
+        t.textContent = l.name;
+        g.__p = p; g.__t = t; g.__ev = evCount;
+        svgEl('title', {}, g).textContent = `${l.name}（${LAYER_NAME[l.layer] || l.layer}）${evCount ? ` · ${evCount} 个事件` : ''}`;
+      }
+      const box = $('#mapNoCoord');
+      box.hidden = !noCoord.length;
+      box.innerHTML = noCoord.length ? `没有具体坐标的地点：${noCoord.map(locChip).join('')}` : '';
+      applyMapScale();
+    }
+    function applyMapScale() {
+      if (!mapZoom) return;
+      const s = labelScale(mapZoom.z, 0.35);
+      for (const el of $$('.sc', mapVP)) el.setAttribute('transform', `scale(${s})`);
+      placeMapLabels(s);
+    }
+
+    // 给每个地名找一个不和别的图标、文字重叠的位置（按当前缩放计算）
+    function placeMapLabels(s) {
+      const boxes = [];
+      const overlap = b => {
+        let a = 0;
+        for (const o of boxes) {
+          const w = Math.min(b.x1, o.x1) - Math.max(b.x0, o.x0), h = Math.min(b.y1, o.y1) - Math.max(b.y0, o.y0);
+          if (w > 0 && h > 0) a += w * h;
+        }
+        return a;
+      };
+      const best = opts => {
+        let pick = opts[0], min = Infinity;
+        for (const o of opts) {
+          const a = overlap(o.box);
+          if (a < min - 1e-9) { min = a; pick = o; if (a === 0) break; }
+        }
+        return pick;
+      };
+      const textWidth = (g, els) => {
+        if (!g.__w) g.__w = Math.max(0, ...els.map(t => { try { return t.getComputedTextLength(); } catch (e) { return 0; } }));
+        return (g.__w || 60) + 4;
+      };
+      const markers = $$('.mk', mapVP);
+      for (const g of markers) {
+        const p = g.__p, r = 10 * s;
+        boxes.push({ x0: p.x - r, y0: p.y - r, x1: p.x + r, y1: p.y + r });
+      }
+      for (const g of $$('.nlabel', mapVP)) {
+        const w = textWidth(g, $$('text', g)) * s, hasSub = !!$('.nsub', g);
+        const opts = (nationLabelCands.get(g.__nid) || []).map(c => {
+          const y = c.y + c.dy * s;
+          return { x: c.x, y, box: { x0: c.x - w / 2, y0: y - 20 * s, x1: c.x + w / 2, y1: y + (hasSub ? 18 : 4) * s } };
+        });
+        if (!opts.length) continue;
+        const pick = best(opts);
+        g.setAttribute('transform', `translate(${pick.x},${pick.y})`);
+        boxes.push(pick.box);
+      }
+      const CANDS = [[13, 4, 'start'], [-13, 4, 'end'], [0, -14, 'middle'], [0, 23, 'middle'], [10, -9, 'start'], [10, 18, 'start'], [-10, -9, 'end'], [-10, 18, 'end']];
+      const order = markers.slice().sort((a, b) => (b.__ev || 0) - (a.__ev || 0));
+      for (const g of order) {
+        const t = g.__t, p = g.__p, w = textWidth(g, [t]) * s;
+        const opts = CANDS.map(([ox, oy, anchor]) => {
+          const ax = p.x + ox * s, ay = p.y + oy * s;
+          const x0 = anchor === 'start' ? ax : anchor === 'end' ? ax - w : ax - w / 2;
+          return { ox, oy, anchor, box: { x0, y0: ay - 11 * s, x1: x0 + w, y1: ay + 3 * s } };
+        });
+        const pick = best(opts);
+        t.setAttribute('x', pick.ox);
+        t.setAttribute('y', pick.oy);
+        t.setAttribute('text-anchor', pick.anchor);
+        // 实在放不下（会和别的字大片重叠）的地名先藏起来，放大地图后自然会出现；被选中或高亮的始终显示
+        const b = pick.box, area = (b.x1 - b.x0) * (b.y1 - b.y0);
+        const crowded = overlap(b) > area * 0.3 && !g.classList.contains('hl') && !g.classList.contains('sel');
+        t.style.visibility = crowded ? 'hidden' : '';
+        if (!crowded) boxes.push(b);
+      }
+    }
+    function applyMapHL(hl) {
+      const sel = state.sel;
+      let selLoc = null;
+      if (sel && sel.type === 'loc') selLoc = sel.id;
+      if (sel && sel.type === 'event') selLoc = (eventById.get(sel.id) || {}).location || null;
+      mapSvg.classList.toggle('has-hl', !!hl && hl.mapSet.size > 0);
+      for (const g of $$('[data-sel]', mapVP)) {
+        const id = g.getAttribute('data-sel').slice(4);
+        g.classList.toggle('sel', id === selLoc);
+        g.classList.toggle('hl', !!hl && hl.mapSet.has(id));
+      }
+      if (mapZoom) placeMapLabels(labelScale(mapZoom.z, 0.35)); // 高亮的地名要保证显示
+    }
+
+    // ================= 人物关系图 =================
+    const GW = 1500;
+    let GH = 1100, GCENTER = { x: GW * 0.5, y: GH * 0.5 }, layoutAspect = 0;
+    const graphSvg = $('#graphSvg');
+    const graphVP = svgEl('g', { class: 'vp' }, graphSvg);
+    const gHalos = svgEl('g', {}, graphVP);
+    const gEdges = svgEl('g', {}, graphVP);
+    const gEdgeHits = svgEl('g', { class: 'edge-hits' }, graphVP);
+    const gArrows = svgEl('g', {}, graphVP);
+    const gNodes = svgEl('g', {}, graphVP);
+    const gELabels = svgEl('g', {}, graphVP);
+    let G = { nodes: [], links: [], byKey: new Map(), byEl: new Map(), groups: [] };
+    let hoverKey = null, hoverLink = null;
+
+    // 每个节点属于哪个「国家区」（不属于任何国家的放在正中间）
+    function groupOf(n) {
+      if (n.kind === 'char') return charById.get(n.id).nation || '';
+      if (n.kind === 'fac') return facById.get(n.id).nation || '';
+      return locs.get(n.id).nation || '';
+    }
+    const groupColor = g => (g ? nationColor(g) : NEUTRAL);
+    const groupName = g => (g ? (nationById.get(g) || {}).name || g : '无所属国家');
+
+    function buildGraph() {
+      const all = new Map();
+      const addNode = (kind, id) => {
+        const k = nodeKey({ kind, id });
+        if (!all.has(k)) all.set(k, { key: k, kind, id });
+        return k;
+      };
+      for (const cid of V.chars) addNode('char', cid);
+      for (const fid of V.facs) addNode('fac', fid);
+      const links = [];
+      for (const x of V.rels) links.push({ s: addNode(x.a.kind, x.a.id), t: addNode(x.b.kind, x.b.id), rel: x.r });
+      for (const m of V.members) links.push({ s: 'c:' + m.c, t: 'f:' + m.f, member: true });
+
+      let core = null;
+      if (state.fNation || state.fFaction) {
+        core = new Set();
+        for (const cid of V.chars) {
+          const c = charById.get(cid);
+          if (state.fNation && c.nation !== state.fNation) continue;
+          if (state.fFaction && !charFactions(c).includes(state.fFaction)) continue;
+          core.add('c:' + cid);
+        }
+        if (state.fFaction) core.add('f:' + state.fFaction);
+        if (state.fNation && !state.fFaction) {
+          for (const fid of V.facs) if (facById.get(fid).nation === state.fNation) core.add('f:' + fid);
+          if (all.has('l:' + state.fNation)) core.add('l:' + state.fNation);
+        }
+      }
+      const keep = core ? new Set(core) : new Set(all.keys());
+      const extra = new Set();
+      if (core && state.neighbors) {
+        for (const l of links) {
+          if (core.has(l.s) && !core.has(l.t)) extra.add(l.t);
+          if (core.has(l.t) && !core.has(l.s)) extra.add(l.s);
+        }
+      }
+      extra.forEach(k => keep.add(k));
+      let lk = links.filter(l => keep.has(l.s) && keep.has(l.t));
+      if (core) lk = lk.filter(l => core.has(l.s) || core.has(l.t));
+      // 「隐藏没关系的人」：没有任何人物关系连线的人物不显示（只属于某个势力不算）
+      if (state.hideIsolated) {
+        const related = new Set();
+        for (const l of lk) if (!l.member) { related.add(l.s); related.add(l.t); }
+        for (const k of [...keep]) if (k.startsWith('c:') && !related.has(k)) keep.delete(k);
+        lk = lk.filter(l => keep.has(l.s) && keep.has(l.t));
+      }
+      const nodes = [...keep].map(k => all.get(k)).filter(Boolean);
+      const deg = new Map();
+      for (const l of lk) { deg.set(l.s, (deg.get(l.s) || 0) + 1); deg.set(l.t, (deg.get(l.t) || 0) + 1); }
+      const groups = [...new Set(nodes.map(groupOf))];
+      for (const n of nodes) {
+        n.extra = extra.has(n.key);
+        n.deg = deg.get(n.key) || 0;
+        n.group = groupOf(n);
+        if (n.kind === 'char') {
+          const c = charById.get(n.id);
+          n.name = charName(c); n.color = charColor(c); n.r = 7 + Math.min(n.deg, 10) * 0.7; n.harb = c.harbinger_rank != null;
+        } else if (n.kind === 'fac') {
+          const f = facById.get(n.id);
+          n.name = f.name; n.color = facColor(f); n.r = 11;
+        } else {
+          const l = locs.get(n.id);
+          n.name = l.name; n.color = locColor(l); n.r = 8;
+        }
+        n.labW = textWidth(n.name, 12) + 6;
+        n.x = GCENTER.x; n.y = GCENTER.y; // 真正的位置由 layoutGraph 算
+      }
+      // 同一对之间有多条关系时，连线弯开
+      const pairCount = new Map(), pairIdx = new Map();
+      const pk = l => (l.s < l.t ? l.s + '|' + l.t : l.t + '|' + l.s);
+      for (const l of lk) pairCount.set(pk(l), (pairCount.get(pk(l)) || 0) + 1);
+      for (const l of lk) {
+        const k = pk(l), i = pairIdx.get(k) || 0;
+        pairIdx.set(k, i + 1);
+        const cnt = pairCount.get(k);
+        l.off = cnt > 1 ? (i - (cnt - 1) / 2) * 46 : 0;
+      }
+      return { nodes, links: lk, groups };
+    }
+
+    // 排布分两步：先在每个国家区内部排好，量出每块多大；再把各块按地理方位绕着中间摆开，保证区与区不重叠
+    function geoAngle(g) {
+      const n = nationById.get(g);
+      return n && hasXY(n.map) ? Math.atan2(n.map.y - 0.45, n.map.x - 0.55) : 0;
+    }
+    function layoutGraph(nodes, links) {
+      const byKey = new Map(nodes.map(n => [n.key, n]));
+      const groups = new Map();
+      for (const n of nodes.slice().sort((a, b) => b.deg - a.deg)) {
+        if (!groups.has(n.group)) groups.set(n.group, []);
+        groups.get(n.group).push(n);
+      }
+      const inner = [], cross = [];
+      for (const l of links) {
+        const a = byKey.get(l.s), b = byKey.get(l.t);
+        if (!a || !b) continue;
+        (a.group === b.group ? inner : cross).push({ a, b, member: !!l.member });
+      }
+      // 两个人至少隔多远：圆点大小 + 名字长度
+      const minDist = (a, b) => Math.max(a.r + b.r + 52, 0.68 * (a.labW + b.labW) + 10);
+
+      function localLayout(members, iters) {
+        const set = new Set(members), N = members.length;
+        const L = inner.filter(l => set.has(l.a));
+        for (const n of members) { n.vx = 0; n.vy = 0; }
+        for (let it = 0; it < iters; it++) {
+          const alpha = 1 - (it / iters) * 0.85;
+          for (let i = 0; i < N; i++) {
+            const a = members[i];
+            for (let j = i + 1; j < N; j++) {
+              const b = members[j];
+              let dx = b.lx - a.lx, dy = b.ly - a.ly, d2 = dx * dx + dy * dy;
+              if (d2 < 1) { dx = hashStr(a.key + b.key) - 0.5; dy = hashStr(b.key + a.key) - 0.5; d2 = dx * dx + dy * dy + 0.01; }
+              const d = Math.sqrt(d2), md = minDist(a, b);
+              let f = 5000 / d2;
+              if (d < md) f += (md - d) * 0.4;
+              const fx = dx / d * f, fy = dy / d * f;
+              a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
+            }
+          }
+          for (const l of L) {
+            const dx = l.b.lx - l.a.lx, dy = l.b.ly - l.a.ly, d = Math.hypot(dx, dy) || 1;
+            const f = (d - (l.member ? 80 : 110)) * 0.05, fx = dx / d * f, fy = dy / d * f;
+            l.a.vx += fx; l.a.vy += fy; l.b.vx -= fx; l.b.vy -= fy;
+          }
+          for (const n of members) {
+            n.vx -= n.lx * 0.03; n.vy -= n.ly * 0.03;
+            if (n.pull) { n.vx += n.pull.x * 1.6; n.vy += n.pull.y * 1.6; }
+          }
+          for (const n of members) {
+            n.vx *= 0.55; n.vy *= 0.55;
+            const sp = Math.hypot(n.vx, n.vy), max = 30 * alpha + 2;
+            if (sp > max) { n.vx *= max / sp; n.vy *= max / sp; }
+            n.lx += n.vx * alpha; n.ly += n.vy * alpha;
+          }
+        }
+        for (let it = 0; it < 60; it++) {
+          for (let i = 0; i < N; i++) {
+            for (let j = i + 1; j < N; j++) {
+              const a = members[i], b = members[j];
+              const dx = b.lx - a.lx, dy = b.ly - a.ly, d = Math.hypot(dx, dy) || 0.01, md = minDist(a, b);
+              if (d >= md) continue;
+              const p = (md - d) / 2, ux = dx / d, uy = dy / d;
+              a.lx -= ux * p; a.ly -= uy * p; b.lx += ux * p; b.ly += uy * p;
+            }
+          }
+        }
+        let R = 50;
+        for (const n of members) R = Math.max(R, Math.hypot(n.lx, n.ly) + n.r + n.labW / 2 + 12);
+        return R;
+      }
+
+      function placeGroups(R) {
+        const centers = new Map(), C = { x: GW / 2, y: GH / 2 };
+        const ring = [...R.keys()].filter(g => g !== '').sort((a, b) => geoAngle(a) - geoAngle(b));
+        const hasCenter = R.has('');
+        if (hasCenter) centers.set('', { ...C });
+        if (!ring.length) return centers;
+        if (ring.length === 1 && !hasCenter) { centers.set(ring[0], { ...C }); return centers; }
+        const A = clamp(GH / GW, 0.7, 1.5), gap = 46;
+        const total = ring.reduce((sum, g) => sum + R.get(g) + gap, 0);
+        let ang = geoAngle(ring[0]) - Math.PI * (R.get(ring[0]) + gap) / total;
+        const angles = ring.map(g => {
+          const span = Math.PI * 2 * (R.get(g) + gap) / total, mid = ang + span / 2;
+          ang += span;
+          return mid;
+        });
+        const Rc = hasCenter ? R.get('') : 0;
+        const pos = D => ring.map((g, i) => ({ x: C.x + Math.cos(angles[i]) * D, y: C.y + Math.sin(angles[i]) * D * A }));
+        let D = 10;
+        for (; D < 8000; D += 8) {
+          const P = pos(D);
+          let ok = true;
+          for (let i = 0; i < ring.length && ok; i++) {
+            const ri = R.get(ring[i]);
+            if (hasCenter && Math.hypot(P[i].x - C.x, P[i].y - C.y) < Rc + ri + gap) ok = false;
+            for (let j = i + 1; j < ring.length && ok; j++) {
+              if (Math.hypot(P[i].x - P[j].x, P[i].y - P[j].y) < ri + R.get(ring[j]) + gap) ok = false;
+            }
+          }
+          if (ok) break;
+        }
+        pos(D).forEach((pt, i) => centers.set(ring[i], pt));
+        return centers;
+      }
+
+      // 初始位置：关系多的人放在区中间，其余按螺旋排开
+      for (const ms of groups.values()) {
+        ms.forEach((n, i) => { const a = i * 2.39996, rr = 30 * Math.sqrt(i); n.lx = Math.cos(a) * rr; n.ly = Math.sin(a) * rr; n.pull = null; });
+      }
+      const R = new Map();
+      for (const [g, ms] of groups) R.set(g, localLayout(ms, 260));
+      let centers = placeGroups(R);
+      // 第二轮：和别国有关系的人，往对方那一侧靠，连线就不用横穿整个区
+      const pulls = new Map();
+      for (const { a, b } of cross) {
+        for (const [x, y] of [[a, b], [b, a]]) {
+          const c1 = centers.get(x.group), c2 = centers.get(y.group);
+          const dx = c2.x - c1.x, dy = c2.y - c1.y, d = Math.hypot(dx, dy) || 1;
+          const pp = pulls.get(x) || { x: 0, y: 0 };
+          pp.x += dx / d; pp.y += dy / d;
+          pulls.set(x, pp);
+        }
+      }
+      for (const [n, pp] of pulls) { const d = Math.hypot(pp.x, pp.y) || 1; n.pull = { x: pp.x / d, y: pp.y / d }; }
+      for (const [g, ms] of groups) R.set(g, localLayout(ms, 180));
+      centers = placeGroups(R);
+      for (const n of nodes) {
+        const c = centers.get(n.group);
+        n.x = c.x + n.lx; n.y = c.y + n.ly;
+      }
+    }
+
+    function graphBounds() {
+      if (!G.nodes.length) return { x: 0, y: 0, w: GW, h: GH };
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const n of G.nodes) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
+      const pad = 70, w = Math.max(x1 - x0, 260), h = Math.max(y1 - y0, 220);
+      // 下边多留一点，给图例让位置
+      return { x: (x0 + x1) / 2 - w / 2 - pad, y: (y0 + y1) / 2 - h / 2 - pad, w: w + pad * 2, h: h + pad * 2 + 90 };
+    }
+
+    function renderGraph(relayout) {
+      if (relayout) {
+        // 按关系图窗口的形状来铺开（竖长的窗口就铺得高一些）
+        const r = graphSvg.getBoundingClientRect();
+        if (r.width > 50 && r.height > 50) {
+          GH = clamp(GW * r.height / r.width, 750, 1800);
+          GCENTER = { x: GW * 0.5, y: GH * 0.5 };
+          layoutAspect = r.height / r.width;
+        }
+      }
+      const { nodes, links, groups } = buildGraph();
+      if (relayout) layoutGraph(nodes, links);
+      G = { nodes, links, byKey: new Map(nodes.map(n => [n.key, n])), byEl: new Map(), groups: [] };
+      hoverKey = null; hoverLink = null;
+      [gHalos, gEdges, gEdgeHits, gArrows, gELabels, gNodes].forEach(g => { g.textContent = ''; });
+      // 国家区：每个节点下面垫一个大圆，整组半透明，连起来就是一块底色
+      for (const g of groups) {
+        const members = nodes.filter(n => n.group === g);
+        if (!members.length) continue;
+        const color = groupColor(g);
+        const wrap = svgEl('g', { class: 'halo' }, gHalos);
+        const blob = svgEl('g', { opacity: g ? 0.13 : 0.07 }, wrap);
+        const circles = members.map(n => ({ n, el: svgEl('circle', { r: 58, fill: color }, blob) }));
+        const label = svgEl('g', { class: 'halo-label' }, wrap);
+        const t = svgEl('text', { fill: color }, label);
+        t.textContent = groupName(g);
+        G.groups.push({ id: g, circles, label, members });
+      }
+      for (const l of links) {
+        const color = l.member ? null : relCat(l.rel.type).color;
+        l.el = svgEl('path', { class: 'edge' + (l.member ? ' member' : ''), 'vector-effect': 'non-scaling-stroke' }, gEdges);
+        if (color) l.el.setAttribute('stroke', color);
+        l.hl = false; l.hov = false;
+        if (!l.member) {
+          l.hit = svgEl('path', { class: 'edge-hit', 'vector-effect': 'non-scaling-stroke' }, gEdgeHits);
+          l.hit.__link = l;
+          l.arrow = svgEl('path', { class: 'arrow', fill: color }, gArrows);
+          l.lab = svgEl('g', { class: 'elabel' }, gELabels);
+          svgEl('text', {}, l.lab).textContent = l.rel.label || '';
+          l.labW = textWidth(l.rel.label || '', 11) + 8;
+        } else {
+          l.hit = null; l.arrow = null; l.lab = null;
+        }
+      }
+      for (const n of nodes) {
+        const sel = { char: 'char:', fac: 'fac:', loc: 'loc:' }[n.kind] + n.id;
+        const g = svgEl('g', { class: `node kind-${n.kind}${n.extra ? ' extra' : ''}`, 'data-sel': sel }, gNodes);
+        svgEl('circle', { class: 'selring', r: n.r + 5 }, g);
+        if (n.kind === 'char') {
+          if (n.harb) svgEl('circle', { r: n.r + 3.2, fill: 'none', stroke: '#ef6b6b', 'stroke-width': 1.2, 'stroke-dasharray': '2 2' }, g);
+          svgEl('circle', { class: 'nshape', r: n.r, fill: n.color }, g);
+        } else if (n.kind === 'fac') {
+          let d = '';
+          for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i; d += (i ? 'L' : 'M') + (Math.cos(a) * n.r).toFixed(2) + ',' + (Math.sin(a) * n.r).toFixed(2); }
+          svgEl('path', { class: 'nshape', d: d + 'Z', fill: '#151c30', style: `stroke:${n.color}` }, g);
+        } else {
+          svgEl('path', { class: 'nshape', d: `M0,${-n.r}L${n.r},0L0,${n.r}L${-n.r},0Z`, fill: '#16223b', style: `stroke:${n.color}` }, g);
+        }
+        n.lab = svgEl('text', { y: n.r + 14 }, g);
+        n.lab.textContent = n.name;
+        n.labW = textWidth(n.name, 12) + 6;
+        const kindName = { char: '人物', fac: '势力', loc: '地点' }[n.kind];
+        svgEl('title', {}, g).textContent = `${n.name}（${kindName}）`;
+        n.el = g;
+        G.byEl.set(g, n);
+      }
+      if (!nodes.length) {
+        const t = svgEl('text', { class: 'graph-empty', x: GW / 2, y: GH / 2 }, gNodes);
+        t.textContent = '没有符合筛选条件的人物';
+      }
+      if (relayout && graphZoom) graphZoom.fit(false);
+      updateGraphGeometry();
+    }
+
+    // 估算文字宽度（中文按一个字号宽，英文数字按半个）
+    function textWidth(str, size) {
+      let w = 0;
+      for (const ch of String(str)) w += ch.charCodeAt(0) < 128 ? size * 0.55 : size;
+      return w;
+    }
+    const qpt = (g, t) => {
+      const u = 1 - t;
+      return { x: u * u * g.x0 + 2 * u * t * g.cx + t * t * g.x1, y: u * u * g.y0 + 2 * u * t * g.cy + t * t * g.y1 };
+    };
+
+    function updateGraphGeometry() {
+      if (!graphZoom) return;
+      const s = labelScale(graphZoom.z, 0.3);
+      for (const n of G.nodes) n.el.setAttribute('transform', `translate(${n.x.toFixed(1)},${n.y.toFixed(1)}) scale(${s})`);
+      for (const gr of G.groups) {
+        let top = Infinity, sx = 0;
+        for (const { n, el } of gr.circles) {
+          el.setAttribute('cx', n.x.toFixed(1)); el.setAttribute('cy', n.y.toFixed(1));
+          top = Math.min(top, n.y); sx += n.x;
+        }
+        gr.labelPos = { x: sx / gr.circles.length, y: top - 52 };
+        gr.label.setAttribute('transform', `translate(${gr.labelPos.x.toFixed(1)},${gr.labelPos.y.toFixed(1)}) scale(${s})`);
+      }
+      for (const l of G.links) {
+        const a = G.byKey.get(l.s), b = G.byKey.get(l.t);
+        if (!a || !b) continue;
+        const [p, q] = l.s < l.t ? [a, b] : [b, a];
+        const dd = Math.hypot(q.x - p.x, q.y - p.y) || 1;
+        const px = -(q.y - p.y) / dd, py = (q.x - p.x) / dd;
+        const cx = (a.x + b.x) / 2 + px * l.off, cy = (a.y + b.y) / 2 + py * l.off;
+        let sx = cx - a.x, sy = cy - a.y; const sd = Math.hypot(sx, sy) || 1; sx /= sd; sy /= sd;
+        let ex = b.x - cx, ey = b.y - cy; const ed = Math.hypot(ex, ey) || 1; ex /= ed; ey /= ed;
+        const x0 = a.x + sx * a.r * s, y0 = a.y + sy * a.r * s;
+        const x1 = b.x - ex * (b.r + 2) * s, y1 = b.y - ey * (b.r + 2) * s;
+        l.geo = { x0, y0, cx, cy, x1, y1 };
+        const d = `M${x0.toFixed(1)},${y0.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+        l.el.setAttribute('d', d);
+        if (l.hit) l.hit.setAttribute('d', d);
+        if (l.arrow) {
+          const as = 6 * s, bx = x1 - ex * as * 1.7, by = y1 - ey * as * 1.7, nx = -ey * as * 0.75, ny = ex * as * 0.75;
+          l.arrow.setAttribute('d', `M${x1.toFixed(1)},${y1.toFixed(1)}L${(bx + nx).toFixed(1)},${(by + ny).toFixed(1)}L${(bx - nx).toFixed(1)},${(by - ny).toFixed(1)}Z`);
+        }
+      }
+      placeGraphLabels(s);
+    }
+
+    // 摆放人名和关系说明：先放人名，再给要显示的关系说明找不压住别人的位置
+    function placeGraphLabels(s) {
+      if (!graphZoom) return;
+      const boxes = [];
+      const overlap = b => {
+        let a = 0;
+        for (const o of boxes) {
+          const w = Math.min(b.x1, o.x1) - Math.max(b.x0, o.x0), h = Math.min(b.y1, o.y1) - Math.max(b.y0, o.y0);
+          if (w > 0 && h > 0) a += w * h;
+        }
+        return a;
+      };
+      const best = opts => {
+        let pick = opts[0], min = Infinity;
+        for (const o of opts) {
+          const a = overlap(o.box);
+          if (a < min - 1e-9) { min = a; pick = o; if (a === 0) break; }
+        }
+        return pick;
+      };
+      for (const n of G.nodes) {
+        const r = (n.r + 3) * s;
+        boxes.push({ x0: n.x - r, y0: n.y - r, x1: n.x + r, y1: n.y + r });
+      }
+      for (const gr of G.groups) {
+        const w = textWidth(groupName(gr.id), 20) * s / 2;
+        boxes.push({ x0: gr.labelPos.x - w, y0: gr.labelPos.y - 18 * s, x1: gr.labelPos.x + w, y1: gr.labelPos.y + 4 * s });
+      }
+      // 人名
+      const order = G.nodes.slice().sort((a, b) => b.deg - a.deg);
+      for (const n of order) {
+        const w = n.labW, r = n.r;
+        const cands = [[0, r + 14, 'middle'], [0, -r - 6, 'middle'], [r + 5, 4, 'start'], [-r - 5, 4, 'end'], [r + 2, r + 12, 'start'], [-r - 2, r + 12, 'end']];
+        const opts = cands.map(([ox, oy, anchor]) => {
+          const ax = n.x + ox * s, ay = n.y + oy * s;
+          const x0 = anchor === 'start' ? ax : anchor === 'end' ? ax - w * s : ax - (w * s) / 2;
+          return { ox, oy, anchor, box: { x0, y0: ay - 11 * s, x1: x0 + w * s, y1: ay + 3 * s } };
+        });
+        const pick = best(opts);
+        n.lab.setAttribute('x', pick.ox);
+        n.lab.setAttribute('y', pick.oy);
+        n.lab.setAttribute('text-anchor', pick.anchor);
+        boxes.push(pick.box);
+      }
+      // 关系说明：勾选了「常显」、放大到一定程度、被选中或鼠标停在上面时才显示
+      const zoomedIn = graphZoom.z.k / graphZoom.z.k0 >= 2.2;
+      const showAll = state.edgeLabels || zoomedIn;
+      const visible = G.links.filter(l => l.lab && (showAll || l.hl || l.hov));
+      visible.sort((a, b) => (b.hov - a.hov) || (b.hl - a.hl));
+      for (const l of G.links) if (l.lab) l.lab.classList.toggle('show', false);
+      for (const l of visible) {
+        const g = l.geo;
+        if (!g) continue;
+        const w = l.labW * s, h = 15 * s;
+        const opts = [];
+        for (const t of [0.5, 0.42, 0.58, 0.34, 0.66, 0.26, 0.74, 0.2, 0.8]) {
+          const p = qpt(g, t);
+          for (const dy of [0, -13, 13, -24, 24]) {
+            const y = p.y + dy * s;
+            opts.push({ x: p.x, y, box: { x0: p.x - w / 2, y0: y - h / 2, x1: p.x + w / 2, y1: y + h / 2 } });
+          }
+        }
+        const pick = best(opts);
+        l.lab.setAttribute('transform', `translate(${pick.x.toFixed(1)},${pick.y.toFixed(1)}) scale(${s})`);
+        l.lab.classList.add('show');
+        boxes.push(pick.box);
+      }
+    }
+
+    function applyGraphHL(hl) {
+      const sel = state.sel;
+      const selKey = sel && ['char', 'fac', 'loc'].includes(sel.type) ? nodeKey({ kind: sel.type, id: sel.id }) : null;
+      graphSvg.classList.toggle('has-hl', !!hl && hl.graphSet.size > 0);
+      for (const n of G.nodes) {
+        n.el.classList.toggle('sel', n.key === selKey);
+        n.el.classList.toggle('hl', !!hl && hl.graphSet.has(n.key));
+      }
+      const incidentOnly = selKey && G.byKey.has(selKey) && (sel.type === 'char' || sel.type === 'fac');
+      for (const l of G.links) {
+        let on = false;
+        if (hl) {
+          on = incidentOnly
+            ? (l.s === selKey && hl.graphSet.has(l.t)) || (l.t === selKey && hl.graphSet.has(l.s))
+            : hl.graphSet.has(l.s) && hl.graphSet.has(l.t);
+        }
+        l.hl = on;
+        [l.el, l.arrow, l.lab].forEach(e => { if (e) e.classList.toggle('hl', on); });
+      }
+      if (graphZoom) placeGraphLabels(labelScale(graphZoom.z, 0.3));
+    }
+
+    // 鼠标停在人物或连线上：亮出相关的关系说明
+    function setGraphHover(nodeKeyOrNull, linkOrNull) {
+      if (nodeKeyOrNull === hoverKey && linkOrNull === hoverLink) return;
+      hoverKey = nodeKeyOrNull; hoverLink = linkOrNull;
+      for (const l of G.links) {
+        const on = l === linkOrNull || (!!nodeKeyOrNull && (l.s === nodeKeyOrNull || l.t === nodeKeyOrNull) && !l.member);
+        l.hov = on;
+        [l.el, l.arrow].forEach(e => { if (e) e.classList.toggle('hov', on); });
+      }
+      if (graphZoom) placeGraphLabels(labelScale(graphZoom.z, 0.3));
+    }
+    graphSvg.addEventListener('pointerover', e => {
+      if (graphSvg.classList.contains('dragging')) return;
+      const nodeEl = e.target.closest && e.target.closest('.node');
+      if (nodeEl && G.byEl.has(nodeEl)) { setGraphHover(G.byEl.get(nodeEl).key, null); return; }
+      if (e.target.__link) { setGraphHover(null, e.target.__link); return; }
+      setGraphHover(null, null);
+    });
+    graphSvg.addEventListener('pointerleave', () => setGraphHover(null, null));
+
+    // ================= 联动：选中的东西要高亮哪些 =================
+    function highlightSets() {
+      const s = state.sel;
+      if (!s) return null;
+      const mapSet = new Set(), graphSet = new Set();
+      const addRelNeighbors = (kind, ids) => {
+        for (const { a, b } of V.rels) {
+          if (a.kind === kind && ids.includes(a.id)) graphSet.add(nodeKey(b));
+          if (b.kind === kind && ids.includes(b.id)) graphSet.add(nodeKey(a));
+        }
+      };
+      if (s.type === 'char') {
+        graphSet.add('c:' + s.id);
+        addRelNeighbors('char', [s.id]);
+        for (const m of V.members) if (m.c === s.id) graphSet.add('f:' + m.f);
+        for (const l of V.locsByChar.get(s.id) || []) mapSet.add(l);
+      } else if (s.type === 'fac') {
+        graphSet.add('f:' + s.id);
+        addRelNeighbors('fac', [s.id]);
+        for (const m of V.members) {
+          if (m.f !== s.id) continue;
+          graphSet.add('c:' + m.c);
+          for (const l of V.locsByChar.get(m.c) || []) mapSet.add(l);
+        }
+      } else if (s.type === 'loc') {
+        const l = locs.get(s.id);
+        if (!l) return null;
+        const ids = l.kind === 'nation' ? [s.id, ...[...V.locs].filter(id => locs.get(id).nation === s.id)] : [s.id];
+        ids.forEach(id => { mapSet.add(id); graphSet.add('l:' + id); });
+        const chars = l.kind === 'nation' ? nationChars(s.id) : (V.charsByLoc.get(s.id) || new Set());
+        for (const c of chars) graphSet.add('c:' + c);
+        addRelNeighbors('loc', ids);
+      } else if (s.type === 'event') {
+        const e = eventById.get(s.id);
+        if (!e) return null;
+        if (e.location) { mapSet.add(e.location); graphSet.add('l:' + e.location); }
+        for (const c of e.characters || []) if (V.chars.has(c)) graphSet.add('c:' + c);
+      } else if (s.type === 'act') {
+        for (const e of V.events) {
+          if (e.act !== s.id) continue;
+          if (e.location) { mapSet.add(e.location); graphSet.add('l:' + e.location); }
+          for (const c of e.characters || []) if (V.chars.has(c)) graphSet.add('c:' + c);
+        }
+      }
+      return { mapSet, graphSet };
+    }
+
+    // ================= 侧栏：详情 =================
+    function charChip(cid) {
+      const c = charById.get(cid);
+      if (!c || !V.chars.has(cid)) return '';
+      return `<button class="chip" data-sel="char:${esc(cid)}"><i style="background:${charColor(c)}"></i>${esc(charName(c))}</button>`;
+    }
+    function facChip(fid) {
+      const f = facById.get(fid);
+      if (!f || !V.facs.has(fid)) return '';
+      return `<button class="chip fac" data-sel="fac:${esc(fid)}"><i style="background:${facColor(f)}"></i>${esc(f.name)}</button>`;
+    }
+    function locChip(lid) {
+      const l = locs.get(lid);
+      if (!l || !V.locs.has(lid)) return '';
+      const layer = l.layer !== 'surface' ? `<small class="muted">·${LAYER_NAME[l.layer] || l.layer}</small>` : '';
+      return `<button class="chip loc" data-sel="loc:${esc(lid)}" data-focus="1"><i style="background:${locColor(l)}"></i>${esc(l.name)}${layer}</button>`;
+    }
+    const epChip = ep => (ep.kind === 'char' ? charChip(ep.id) : ep.kind === 'fac' ? facChip(ep.id) : locChip(ep.id));
+    function chipsOf(list) {
+      const h = list.filter(Boolean).join('');
+      return h ? `<div class="chips">${h}</div>` : '<div class="empty-note">（暂无）</div>';
+    }
+    function eventCard(e) {
+      const a = actById.get(e.act);
+      const chars = (e.characters || []).map(charChip).join('');
+      const where = e.location ? (locChip(e.location) || '') : '<span class="tag">无具体地点</span>';
+      return `<div class="ev"><button class="ev-open" data-sel="event:${esc(e.id)}" data-focus="1">
+          <div class="ev-act">${esc(a ? actFull(a) : e.act)}</div><div class="ev-sum">${esc(e.summary)}</div></button>
+        <div class="chips">${where}${chars}</div></div>`;
+    }
+    function eventsBlock(list) {
+      return list.length ? list.map(eventCard).join('') : '<div class="empty-note">（暂无已发生的事件）</div>';
+    }
+    function relList(kind, id) {
+      const items = [];
+      for (const { r, a, b } of V.rels) {
+        let other, dir;
+        if (a.kind === kind && a.id === id) { other = b; dir = '→'; }
+        else if (b.kind === kind && b.id === id) { other = a; dir = '←'; }
+        else continue;
+        const cat = relCat(r.type);
+        items.push(`<li><span class="rel-dot" style="background:${cat.color}" title="${esc(cat.name)}"></span><span class="dir">${dir}</span>
+          <div>${epChip(other)} <span class="rl">${esc(r.label)}</span></div></li>`);
+      }
+      if (!items.length) return '<div class="empty-note">（暂无已揭晓的关系）</div>';
+      return `<div class="small muted" style="margin-bottom:4px">→ 表示「这一方 对 对方」，← 表示「对方 对 这一方」</div><ul class="rel-list">${items.join('')}</ul>`;
+    }
+
+    function renderWelcome() {
+      const placeCount = [...V.locs].filter(id => locs.get(id).kind !== 'nation').length;
+      const a = actById.get(state.pid);
+      return `<h3 style="margin:0">欢迎来到提瓦特</h3>
+        <p class="muted">当前进度：<b style="color:var(--accent)">${esc(actFull(a))}</b>（${esc(a.version || '')}）。之后的剧情内容都已藏起来。</p>
+        <div class="stats">
+          <div class="stat"><b>${V.chars.size}</b><span>已登场人物</span></div>
+          <div class="stat"><b>${placeCount}</b><span>已解锁地点</span></div>
+          <div class="stat"><b>${V.events.length}</b><span>已发生事件</span></div>
+        </div>
+        <h4>可以这样玩</h4>
+        <ul class="tips">
+          <li>点<b>地图</b>上的地点，看那里发生过什么；关系图会同时亮起相关人物。</li>
+          <li>点<b>关系图</b>里的人物，看 TA 的简介和关系；地图会亮起 TA 去过的地方。</li>
+          <li>点上面的「剧情时间轴」，按顺序回顾每一幕，点事件会跳到对应地点。</li>
+          <li>「神之心」页能看到七颗神之心现在在谁手里。</li>
+          <li>玩到新的一幕后，记得在顶部「我玩到了」更新进度。</li>
+        </ul>
+        ${warnings.length ? `<p class="small" style="color:#ffcf8a">⚠ 数据文件里有 ${warnings.length} 处小问题，详见「使用说明」最下方。</p>` : ''}`;
+    }
+
+    function renderCharDetail(c) {
+      const nat = c.nation && nationById.get(c.nation);
+      const facs = charFactions(c).filter(f => V.facs.has(f));
+      const secrets = (c.secrets || []).filter(s => seen(s.reveal_at));
+      const evs = V.evByChar.get(c.id) || [];
+      const places = [...(V.locsByChar.get(c.id) || [])];
+      const aliases = charAliases(c);
+      const natTag = nat && V.locs.has(nat.id)
+        ? `<button class="tag" data-sel="loc:${esc(nat.id)}" data-focus="1">${esc(nat.name)}</button>`
+        : `<span class="tag">${nat ? esc(nat.name) : '不属于任何国家'}</span>`;
+      return `<div class="d-head"><span class="d-dot" style="background:${charColor(c)}"></span><h3>${esc(charName(c))}</h3>${natTag}
+          ${c.harbinger_rank != null ? `<span class="tag warn">愚人众执行官 · ${rankName(c.harbinger_rank)}</span>` : ''}</div>
+        ${aliases.length ? `<p class="d-aliases">又名：${aliases.map(esc).join('、')}</p>` : ''}
+        <p class="d-summary">${esc(charSummary(c))}</p>
+        <p class="small muted">首次登场：${esc(actName(c.first_act))}</p>
+        ${secrets.length ? `<h4>已揭晓的秘密</h4>${secrets.map(s => `<div class="secret">🔓 ${esc(s.text)}<small>揭晓于 ${esc(actName(s.reveal_at))}</small></div>`).join('')}` : ''}
+        <h4>所属势力</h4>${chipsOf(facs.map(facChip))}
+        <h4>人物关系</h4>${relList('char', c.id)}
+        <h4>到过的地点 <span class="small muted">（地图上已高亮）</span></h4>${chipsOf(places.map(locChip))}
+        <h4>相关事件（${evs.length}）</h4>${eventsBlock(evs)}`;
+    }
+
+    function renderFacDetail(f) {
+      const members = V.members.filter(m => m.f === f.id).map(m => charChip(m.c));
+      const nat = f.nation && nationById.get(f.nation);
+      return `<div class="d-head"><span class="d-dot" style="background:${facColor(f)};border-radius:3px"></span><h3>${esc(f.name)}</h3>
+          <span class="tag">势力</span>${nat ? (V.locs.has(nat.id) ? locChip(nat.id) : `<span class="tag">${esc(nat.name)}</span>`) : ''}</div>
+        <p class="d-summary">${esc(facDesc(f))}</p>
+        <h4>成员（${members.length}）</h4>${chipsOf(members)}
+        <h4>关系</h4>${relList('fac', f.id)}`;
+    }
+
+    function renderNationDetail(n) {
+      const l = locs.get(n.id);
+      const reached = nationReached(n.id);
+      const ch = n.chapter && chapterById.get(n.chapter);
+      const chFirst = n.chapter && chapterFirst.get(n.chapter);
+      const arch = archonOf(n);
+      const regions = (n.regions || []).filter(r => V.locs.has(r.id)).map(r => locChip(r.id));
+      const evs = nationEvents(n.id);
+      const parent = n.parent && nationById.get(n.parent);
+      return `<div class="d-head"><span class="d-dot" style="background:${nationColor(n.id)}"></span><h3>${esc(n.name)}</h3>
+          ${n.element ? `<span class="tag" style="color:${nationColor(n.id)}">${esc(n.element)}元素</span>` : ''}
+          ${n.ideal ? `<span class="tag">理念：${esc(n.ideal)}</span>` : ''}
+          ${parent ? `<span class="tag">属于${esc(parent.name)}</span>` : ''}</div>
+        <p class="d-summary">神明：${arch.cid ? charChip(arch.cid) : `<span class="muted">${esc(arch.text)}</span>`}</p>
+        <p class="small muted">${ch ? `对应章节：${esc(reached ? ch.title : chapterShort(n.chapter))}` : ''}
+          ${!reached && chFirst ? `<br>按你目前的进度还没到这里，玩到「${esc(actShort(chFirst))}」后会显示这里的地点。` : ''}</p>
+        <h4>地点</h4>${chipsOf(regions)}
+        <h4>相关人物</h4>${chipsOf([...nationChars(n.id)].map(charChip))}
+        ${V.rels.some(x => (x.a.kind === 'loc' && x.a.id === n.id) || (x.b.kind === 'loc' && x.b.id === n.id)) ? `<h4>关系</h4>${relList('loc', n.id)}` : ''}
+        <h4>在这里发生的事件（${evs.length}）</h4>${eventsBlock(evs)}
+        ${l && l.layer !== 'surface' ? '' : ''}`;
+    }
+
+    function renderLocDetail(l) {
+      if (l.kind === 'nation') return renderNationDetail(nationById.get(l.id));
+      const evs = V.evByLoc.get(l.id) || [];
+      const chars = [...(V.charsByLoc.get(l.id) || [])];
+      const layerTag = `<span class="tag ${l.layer}">${LAYER_NAME[l.layer] || l.layer}</span>`;
+      const natChip = l.nation ? locChip(l.nation) : '<span class="tag">特殊地点</span>';
+      const hasRel = V.rels.some(x => (x.a.kind === 'loc' && x.a.id === l.id) || (x.b.kind === 'loc' && x.b.id === l.id));
+      return `<div class="d-head"><span class="d-dot" style="background:${locColor(l)};border-radius:2px;transform:rotate(45deg)"></span><h3>${esc(l.name)}</h3>${layerTag}${natChip}</div>
+        ${noteVisible(l) ? `<p class="d-summary">${esc(l.note)}</p>` : ''}
+        ${!hasXY(l) ? '<p class="small muted">这个地点没有具体坐标，所以不在地图上显示。</p>' : ''}
+        <h4>在这里发生的事件（${evs.length}）</h4>${eventsBlock(evs)}
+        <h4>在这里出现过的人物</h4>${chipsOf(chars.map(charChip))}
+        ${hasRel ? `<h4>关系</h4>${relList('loc', l.id)}` : ''}`;
+    }
+
+    function renderEventDetail(e) {
+      const a = actById.get(e.act);
+      const idx = V.events.findIndex(x => x.id === e.id);
+      const prev = V.events[idx - 1], next = V.events[idx + 1];
+      return `<div class="d-head"><span class="tag">剧情事件</span>${a ? `<span class="tag">${esc(a.version || '')}</span>` : ''}
+          ${a && a.source === 'recap' ? '<span class="tag warn" title="这一幕的部分细节来自官方公告和玩家梳理，以游戏为准">含玩家梳理</span>' : ''}</div>
+        <p class="ev-act" style="margin:10px 0 0">${esc(a ? actFull(a) : e.act)}</p>
+        <p class="d-summary">${esc(e.summary)}</p>
+        <h4>地点</h4>${e.location ? chipsOf([locChip(e.location)]) : '<div class="empty-note">这件事没有具体地点</div>'}
+        <h4>出场人物</h4>${chipsOf((e.characters || []).map(charChip))}
+        <div class="ev-nav">
+          ${prev ? `<button class="btn" data-sel="event:${esc(prev.id)}" data-focus="1">◀ 上一个事件</button>` : '<span></span>'}
+          ${next ? `<button class="btn" data-sel="event:${esc(next.id)}" data-focus="1">下一个事件 ▶</button>` : '<span></span>'}
+        </div>
+        <h4>这一幕的详细剧情</h4>${storyBlock(e.act)}`;
+    }
+
+    // 某一幕的详情：这一幕的事件 + 剧情梳理里的完整段落
+    function renderActDetail(a) {
+      const evs = V.events.filter(e => e.act === a.id);
+      const seenActs = acts.filter(x => x.order <= state.P);
+      const idx = seenActs.findIndex(x => x.id === a.id);
+      const prev = seenActs[idx - 1], next = seenActs[idx + 1];
+      return `<div class="d-head"><span class="tag">主线剧情</span><span class="tag">${esc(a.version || '')}</span>
+          ${a.source === 'recap' ? '<span class="tag warn" title="这一幕的部分细节来自官方公告和玩家梳理，以游戏为准">含玩家梳理</span>' : ''}</div>
+        <h3 style="margin:10px 0 0">${esc(actFull(a))}</h3>
+        <h4>这一幕的事件（${evs.length}）</h4>${eventsBlock(evs)}
+        <div class="ev-nav">
+          ${prev ? `<button class="btn" data-sel="act:${esc(prev.id)}">◀ 上一幕</button>` : '<span></span>'}
+          ${next ? `<button class="btn" data-sel="act:${esc(next.id)}">下一幕 ▶</button>` : '<span></span>'}
+        </div>
+        <h4>详细剧情</h4>${storyBlock(a.id)}`;
+    }
+
+    function renderDetail() {
+      const box = $('#tab-detail');
+      const s = state.sel;
+      let html = '';
+      if (!s) html = renderWelcome();
+      else {
+        let body = '';
+        if (s.type === 'char') body = renderCharDetail(charById.get(s.id));
+        else if (s.type === 'fac') body = renderFacDetail(facById.get(s.id));
+        else if (s.type === 'loc') body = renderLocDetail(locs.get(s.id));
+        else if (s.type === 'event') body = renderEventDetail(eventById.get(s.id));
+        else if (s.type === 'act') body = renderActDetail(actById.get(s.id));
+        html =`<div class="sel-bar"><span>当前选中</span><button class="btn" data-action="clear">清除选择（Esc）</button></div>${body}`;
+      }
+      box.innerHTML = html;
+      box.scrollTop = 0;
+    }
+
+    // ================= 侧栏：剧情时间轴 =================
+    function renderTimeline() {
+      const box = $('#tab-timeline');
+      const shown = acts.filter(a => a.order <= state.P);
+      const groups = [];
+      for (const a of shown) {
+        const last = groups[groups.length - 1];
+        if (last && last.chapter === a.chapter) last.acts.push(a);
+        else groups.push({ chapter: a.chapter, acts: [a] });
+      }
+      let html = '<p class="small muted" style="margin-top:0">只列出你已经玩过的部分。点事件，地图会飞到事件发生的地点。</p>';
+      for (const g of groups) {
+        const ch = chapterById.get(g.chapter);
+        html += `<div class="tl-chapter"><h4>${esc(ch ? ch.title : chapterShort(g.chapter))}</h4>`;
+        for (const a of g.acts) {
+          const evs = V.events.filter(e => e.act === a.id);
+          html += `<div class="tl-act${a.id === state.pid ? ' current' : ''}" id="tl-${esc(a.id)}">
+            <div class="tl-act-head">${esc(actFull(a))}<span class="ver">${esc(a.version || '')}</span>
+            ${a.source === 'recap' ? ' <span class="tag warn" title="这一幕的部分细节来自官方公告和玩家梳理，以游戏为准">含玩家梳理</span>' : ''}
+            ${a.id === state.pid ? ' <span class="tag" style="color:var(--accent)">你在这里</span>' : ''}
+            <button class="tl-more" data-sel="act:${esc(a.id)}">📖 详细剧情</button></div>`;
+          if (!evs.length) html += '<div class="small muted">（这一幕没有单独记录的事件）</div>';
+          for (const e of evs) {
+            const l = e.location && locs.get(e.location);
+            const who = (e.characters || []).filter(c => V.chars.has(c)).map(c => charName(charById.get(c))).join('、');
+            html += `<button class="tl-ev" data-sel="event:${esc(e.id)}" data-focus="1" data-keep-tab="1">${esc(e.summary)}
+              <small>📍 ${l && V.locs.has(l.id) ? esc(l.name) : '无具体地点'}${who ? ' · ' + esc(who) : ''}</small></button>`;
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+      const locked = acts.length - shown.length;
+      if (locked > 0) html += `<div class="tl-locked">🔒 后面还有 ${locked} 幕没解锁<br><span class="small">在顶部「我玩到了」调整进度后才会显示</span></div>`;
+      else html += '<div class="tl-locked">🎉 已经是数据里的最新一幕了</div>';
+      box.innerHTML = html;
+    }
+    function scrollTimelineToCurrent() {
+      const box = $('#tab-timeline'), el = document.getElementById('tl-' + state.pid);
+      if (el && !box.hidden) box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - box.clientHeight / 3;
+    }
+
+    // ================= 侧栏：神之心 =================
+    function renderGnosis() {
+      const box = $('#tab-gnosis');
+      let fatuiCount = 0;
+      const gems = [], cards = [];
+      for (const g of gnoses) {
+        const color = ELEMENT_COLOR[g.element] || NEUTRAL;
+        const nation = nations.find(n => n.element === g.element);
+        const steps = (g.path || []).filter(p => seen(p.act));
+        const orig = charById.get(g.original_holder);
+        const origHtml = orig && V.chars.has(orig.id) && allSecretsSeen(orig)
+          ? charChip(orig.id) : `<span class="muted">${esc(g.element)}神（身份尚未揭晓）</span>`;
+        const last = steps[steps.length - 1];
+        let nowHtml, inFatui = false, lost = false;
+        if (!last || last.holder === g.original_holder) nowHtml = '<b>仍在原主人手里</b>';
+        else if (last.holder == null) { nowHtml = '<b>下落不明</b>'; lost = true; }
+        else {
+          const h = charById.get(last.holder);
+          nowHtml = h && V.chars.has(h.id) ? charChip(h.id) : '<span class="muted">（未知）</span>';
+          inFatui = !!h && charFactions(h).includes('fatui');
+        }
+        if (inFatui) fatuiCount++;
+        const allShown = steps.length === (g.path || []).length;
+        let belong = '';
+        if (allShown && steps.length && g.current_holder && facById.has(g.current_holder) && V.facs.has(g.current_holder)) belong = `<div class="small muted">目前归属：${facChip(g.current_holder)}</div>`;
+        gems.push(`<span title="${esc(g.element)}之神之心"><i class="gn-mini${inFatui ? ' taken' : lost ? ' lost' : ''}" style="--gc:${color}"></i>${esc(g.element)}</span>`);
+        cards.push(`<div class="gn-card" style="--gc:${color}">
+          <div class="gn-title"><span class="gn-gem"></span>${esc(g.element)}之神之心 ${nation ? `<span class="tag">${esc(nation.name)}</span>` : ''}</div>
+          <div class="gn-now">现在：${nowHtml}${inFatui ? ' <span class="tag warn">在愚人众手中</span>' : ''}</div>
+          ${belong}
+          <ol class="gn-path"><li>原主人：${origHtml}</li>
+          ${steps.map(p => `<li>${p.holder ? (charChip(p.holder) || '<span class="muted">（未知）</span>') : '<b>下落不明</b>'}<small>${esc(actName(p.act))}${p.note ? ' · ' + esc(p.note) : ''}</small></li>`).join('')}
+          </ol></div>`);
+      }
+      box.innerHTML = `<div class="gn-summary">按你目前的进度，愚人众手里已经有 <b>${fatuiCount}</b> 颗神之心。
+          <div class="gn-row">${gems.join('')}</div>
+          <div class="small muted" style="margin-top:6px">实心 = 在愚人众手中，空心 = 不在，虚线 = 下落不明。点名字可以看人物详情。</div></div>
+        ${cards.join('')}`;
+    }
+
+    // ================= 顶栏：进度、筛选、搜索 =================
+    const progSel = $('#progressSelect');
+    function renderProgressSelect() {
+      let html = '', cur = null;
+      for (const a of acts) {
+        if (a.chapter !== cur) {
+          if (cur !== null) html += '</optgroup>';
+          const ch = chapterById.get(a.chapter);
+          const label = a.order <= state.P && ch ? ch.title : chapterShort(a.chapter);
+          html += `<optgroup label="${esc(label)}">`;
+          cur = a.chapter;
+        }
+        const label = a.order <= state.P ? `${actFull(a)} · ${a.version || ''}` : `${actShort(a)} · ${a.version || ''}（未解锁）`;
+        html += `<option value="${esc(a.id)}"${a.id === state.pid ? ' selected' : ''}>${esc(label)}</option>`;
+      }
+      progSel.innerHTML = html + '</optgroup>';
+      progSel.value = state.pid;
+    }
+    progSel.addEventListener('change', () => setProgress(progSel.value));
+
+    function renderDataInfo() {
+      const meta = D.meta || {};
+      const a = actById.get(state.pid);
+      $('#dataInfo').textContent = `数据日期 ${meta.as_of || '未知'} · 已解锁 ${a.order} / ${acts.length} 幕${PUBLISHED ? '' : ' · 完全离线'}`;
+    }
+
+    const nationFilter = $('#nationFilter'), factionFilter = $('#factionFilter');
+    function renderFilters() {
+      nationFilter.innerHTML = '<option value="">全部国家</option>' + nations.filter(n => V.locs.has(n.id))
+        .map(n => `<option value="${esc(n.id)}">${esc(n.name)}</option>`).join('');
+      nationFilter.value = state.fNation;
+      factionFilter.innerHTML = '<option value="">全部势力</option>' + factions.filter(f => V.facs.has(f.id))
+        .map(f => `<option value="${esc(f.id)}">${esc(f.name)}</option>`).join('');
+      factionFilter.value = state.fFaction;
+    }
+    nationFilter.addEventListener('change', () => { state.fNation = nationFilter.value; renderGraph(true); refreshSelection(); });
+    factionFilter.addEventListener('change', () => { state.fFaction = factionFilter.value; renderGraph(true); refreshSelection(); });
+    const neighborToggle = $('#neighborToggle'), edgeLabelToggle = $('#edgeLabelToggle');
+    neighborToggle.checked = state.neighbors;
+    edgeLabelToggle.checked = state.edgeLabels;
+    neighborToggle.addEventListener('change', () => { state.neighbors = neighborToggle.checked; saveUI(); renderGraph(true); refreshSelection(); });
+    edgeLabelToggle.addEventListener('change', () => { state.edgeLabels = edgeLabelToggle.checked; saveUI(); updateGraphGeometry(); });
+    const isolatedToggle = $('#isolatedToggle');
+    isolatedToggle.checked = state.hideIsolated;
+    isolatedToggle.addEventListener('change', () => { state.hideIsolated = isolatedToggle.checked; saveUI(); renderGraph(true); refreshSelection(); });
+
+    // 搜索
+    const searchInput = $('#searchInput'), searchResults = $('#searchResults');
+    function searchItems() {
+      const items = [];
+      for (const cid of V.chars) { const c = charById.get(cid); items.push({ key: 'char:' + cid, name: charName(c), alt: charAliases(c).join(' '), kind: '人物', color: charColor(c) }); }
+      for (const lid of V.locs) { const l = locs.get(lid); items.push({ key: 'loc:' + lid, name: l.name, alt: '', kind: l.kind === 'nation' ? '国家' : '地点', color: locColor(l) }); }
+      for (const fid of V.facs) { const f = facById.get(fid); items.push({ key: 'fac:' + fid, name: f.name, alt: '', kind: '势力', color: facColor(f) }); }
+      return items;
+    }
+    function closeSearch() { searchResults.hidden = true; }
+    function runSearch() {
+      const q = searchInput.value.trim();
+      if (!q) { closeSearch(); return; }
+      const hits = searchItems().filter(it => it.name.includes(q) || it.alt.includes(q)).slice(0, 14);
+      searchResults.innerHTML = hits.length
+        ? hits.map((h, i) => `<button class="${i === 0 ? 'active' : ''}" data-sel="${esc(h.key)}" data-focus="1"><i class="d-dot" style="width:10px;height:10px;background:${h.color}"></i>${esc(h.name)}<span class="kind">${h.kind}</span></button>`).join('')
+        : '<div class="empty">没有找到（还没登场的人物不会出现在这里）</div>';
+      searchResults.hidden = false;
+    }
+    searchInput.addEventListener('input', runSearch);
+    searchInput.addEventListener('focus', runSearch);
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { const first = $('button', searchResults); if (first && !searchResults.hidden) first.click(); }
+      if (e.key === 'Escape') { searchInput.value = ''; closeSearch(); searchInput.blur(); e.stopPropagation(); }
+    });
+    document.addEventListener('pointerdown', e => { if (!e.target.closest('.search-box')) closeSearch(); });
+
+    // ================= 选中 / 跳转 =================
+    function selectionVisible(s) {
+      if (s.type === 'char') return V.chars.has(s.id);
+      if (s.type === 'fac') return V.facs.has(s.id);
+      if (s.type === 'loc') return V.locs.has(s.id);
+      if (s.type === 'event') return V.events.some(e => e.id === s.id);
+      if (s.type === 'act') return actById.has(s.id) && actById.get(s.id).order <= state.P;
+      return false;
+    }
+    function select(key, opts = {}) {
+      if (!key) state.sel = null;
+      else { const i = key.indexOf(':'); state.sel = { type: key.slice(0, i), id: key.slice(i + 1) }; }
+      if (state.sel && !selectionVisible(state.sel)) state.sel = null;
+      if (!opts.keepTab) setTab('detail');
+      if (state.sel) openSheet();
+      refreshSelection();
+      if (opts.focus && state.sel) focusSelection();
+    }
+    function refreshSelection() {
+      const hl = highlightSets();
+      applyMapHL(hl);
+      applyGraphHL(hl);
+      renderDetail();
+      const k = state.sel ? `${state.sel.type}:${state.sel.id}` : '';
+      $$('.tl-ev').forEach(b => b.classList.toggle('sel', b.dataset.sel === k));
+    }
+    function focusSelection() {
+      const s = state.sel;
+      let lid = null;
+      if (s.type === 'loc') lid = s.id;
+      else if (s.type === 'event') lid = (eventById.get(s.id) || {}).location || null;
+      if (lid && state.layout !== 'graph') {
+        const l = locs.get(lid);
+        if (l && V.locs.has(lid)) {
+          if (l.kind !== 'nation' && hasXY(l) && !state.layers[l.layer]) {
+            state.layers[l.layer] = true;
+            saveUI(); syncLayerButtons(); renderMap(); applyMapHL(highlightSets());
+          }
+          if (l.kind === 'nation') { const p = nationLabelPos.get(lid); if (p) mapZoom.focus(p.x, p.y, 1.7); }
+          else if (dpos.has(lid)) { const p = dpos.get(lid); mapZoom.focus(p.x, p.y, 2.4); }
+        }
+      }
+      if ((s.type === 'char' || s.type === 'fac') && state.layout !== 'map') {
+        const key = nodeKey({ kind: s.type, id: s.id });
+        if (!G.byKey.has(key) && (state.fNation || state.fFaction)) {
+          state.fNation = ''; state.fFaction = '';
+          renderFilters(); renderGraph(true); applyGraphHL(highlightSets());
+        }
+        const n = G.byKey.get(key);
+        if (n) graphZoom.focus(n.x, n.y, 1.3);
+      }
+    }
+
+    document.addEventListener('click', e => {
+      const act = e.target.closest('[data-action]');
+      if (act) {
+        if (act.dataset.action === 'clear') select(null);
+        return;
+      }
+      const t = e.target.closest('[data-sel]');
+      if (!t || t.closest('svg')) return;
+      e.preventDefault();
+      if (t.closest('.search-results')) { closeSearch(); searchInput.value = ''; }
+      select(t.dataset.sel, { focus: t.dataset.focus === '1', keepTab: t.dataset.keepTab === '1' });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (!$('#helpModal').hidden) { $('#helpModal').hidden = true; return; }
+      if (state.sel) select(null, { keepTab: true });
+    });
+
+    // ================= 版面、图层、标签页 =================
+    // 手机上：侧栏变成从底部拉起的面板（收起 / 半屏 / 全屏），点选东西时自动拉到半屏
+    const mobileMQ = window.matchMedia('(max-width: 820px)');
+    const sidePanel = $('.side');
+    const setSheet = mode => { sidePanel.dataset.sheet = mode; };
+    function openSheet() { if (mobileMQ.matches && sidePanel.dataset.sheet === 'peek') setSheet('half'); }
+    $('#sheetHandle').addEventListener('click', () => setSheet({ peek: 'half', half: 'full', full: 'peek' }[sidePanel.dataset.sheet] || 'half'));
+    setSheet('peek');
+
+    function setTab(name) {
+      state.tab = name;
+      $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+      for (const t of ['detail', 'timeline', 'gnosis']) $('#tab-' + t).hidden = t !== name;
+      if (name === 'timeline') scrollTimelineToCurrent();
+    }
+    $$('#tabs button').forEach(b => b.addEventListener('click', () => { setTab(b.dataset.tab); openSheet(); }));
+
+    function setLayout(name) {
+      state.layout = name;
+      saveUI();
+      const main = $('#main');
+      main.classList.remove('layout-both', 'layout-map', 'layout-graph');
+      main.classList.add('layout-' + name);
+      $$('#layoutSeg button').forEach(b => b.classList.toggle('on', b.dataset.layout === name));
+    }
+    $$('#layoutSeg button').forEach(b => b.addEventListener('click', () => setLayout(b.dataset.layout)));
+
+    function syncLayerButtons() {
+      $$('#layerToggles button').forEach(b => b.classList.toggle('on', !!state.layers[b.dataset.layer]));
+    }
+    $$('#layerToggles button').forEach(b => b.addEventListener('click', () => {
+      state.layers[b.dataset.layer] = !state.layers[b.dataset.layer];
+      saveUI(); syncLayerButtons(); renderMap(); applyMapHL(highlightSets());
+    }));
+
+    $$('.zoom-btns').forEach(box => {
+      box.addEventListener('click', e => {
+        const b = e.target.closest('[data-zoom]');
+        if (!b) return;
+        const z = box.dataset.for === 'map' ? mapZoom : graphZoom;
+        if (b.dataset.zoom === 'in') z.zoomCenter(1.4);
+        else if (b.dataset.zoom === 'out') z.zoomCenter(1 / 1.4);
+        else z.fit(true);
+      });
+    });
+
+    // ================= 使用说明 =================
+    function renderHelp() {
+      const meta = D.meta || {};
+      const dflt = actById.get(defaultPid);
+      // 发布到网上的版本（手机、朋友看的）不需要「改数据」这些只对本机文件有用的说明
+      const localOnly = PUBLISHED ? '' : `
+        <h3>改了数据之后</h3>
+        <ol>
+          <li>用记事本打开 <code>data/genshin_world_data.json</code>（或剧情梳理的 .md 文件），修改并保存。</li>
+          <li>双击文件夹里的 <b>更新数据.bat</b>，看到「成功」后按任意键关闭黑色窗口。</li>
+          <li>回到网页按 <b>F5</b> 刷新。</li>
+        </ol>
+        <p>小提示：网页会优先使用你上次在页面上选的进度。如果你改了 json 里的 meta.player_progress，想让它生效，点下面这个按钮：</p>
+        <p><button class="btn" id="resetProgress">恢复为数据文件里的默认进度（${esc(dflt ? actShort(dflt) : defaultPid)}）</button></p>`;
+      $('#helpBody').innerHTML = `
+        <p>${PUBLISHED ? '这是网页版的提瓦特世界观地图，手机和电脑都能看。' : '这是一个完全离线的网页：不联网、不需要安装软件。双击「原神世界观地图.html」就能打开。'}</p>
+        <h3>怎么用</h3>
+        <ul>
+          <li><b>选进度</b>：在顶部「我玩到了」选你目前打到的那一幕。之后的人物、事件、关系、秘密都会自动藏起来。选好会自动记住，下次打开不用重选。</li>
+          <li><b>地图</b>：滚轮缩放，按住鼠标拖动，双击放大。点地点能看到在那里发生过的事件，关系图会同时亮起相关人物。点大字的国家名可以看整个国家。</li>
+          <li><b>天空和地下</b>：天空的地点是悬浮的星形（下面有影子），地下的地点是紫色虚线圈。地图上方的「地表 / 天空 / 地下」按钮可以单独打开或关掉某一层；只开「地下」时，地表会变暗。</li>
+          <li><b>人物关系</b>：圆点是人物（颜色 = 所属国家的元素色，金色是旅行者），六边形是势力，菱形是地点；红色虚线圈表示愚人众执行官。连线颜色表示关系类型，箭头从主动的一方指向另一方，虚线表示「属于这个势力」。人物按国家分成一块块，每块垫着该国的元素色；不属于任何国家的人（比如旅行者）在正中间。关系说明平时不显示，鼠标移到人物或连线上、点选人物、或者放大后才出现；想一直显示可以勾「常显全部关系说明」。可以按国家、势力筛选，勾「隐藏没关系的人」能去掉没有任何人物关系的人，也可以拖动人物调整位置。点人物后，地图上会亮起 TA 去过的地点。</li>
+          <li><b>剧情时间轴</b>：按顺序列出你已经玩过的各幕和事件，点事件，地图会飞到对应地点。每一幕后面的「📖 详细剧情」按钮，以及每个事件的详情页，都会显示剧情梳理里这一幕的完整内容。如果梳理把这一幕和后面一幕写在同一段，要等后面那一幕也玩到才显示。</li>
+          <li><b>神之心</b>：七颗神之心现在在谁手里，以及一路是怎么流转的。</li>
+          <li>右上角可以切换「并排 / 只看地图 / 只看关系图」。按 <b>Esc</b> 取消选中。</li>
+          <li><b>手机上</b>：用两根手指缩放地图和关系图，一根手指拖动。点地点或人物后，详情会从屏幕下方弹出；点面板顶部的「点这里展开 / 收起」可以调整高度。</li>
+        </ul>
+        <h3>防剧透是怎么做的</h3>
+        <ul>
+          <li>所有带 reveal_at 或 act 的内容，只显示在你进度之内（含当前这一幕）的部分。</li>
+          <li>人物的 first_act 在你进度之后，整个人物都不显示（地图、关系图、搜索里都找不到）。</li>
+          <li>人物的别名（比如某位神明的真名）要等 TA 的秘密全部揭晓后才显示。</li>
+          <li>地点说明如果提到还没登场的人物，或者那里的事件还没发生，会先藏起来；还没到达的国家，里面的具体地点也先不显示。</li>
+          <li>少数名字和说明本身就带剧透，页面会先用当时剧情里的叫法代替。</li>
+          <li>进度下拉框里，还没玩到的幕只显示编号和版本，不显示标题。</li>
+        </ul>
+        ${localOnly}
+        <h3>关于数据</h3>
+        <ul>
+          <li>数据日期：${esc(meta.as_of || '未知')}。地图坐标是示意坐标，只表示大致方位。</li>
+          <li>标着「含玩家梳理」的幕，部分细节来自官方公告和玩家梳理，以游戏为准。</li>
+        </ul>
+        <h3>数据检查</h3>
+        ${warnings.length
+          ? `<div class="warn-box"><p style="margin:0 0 4px">发现 ${warnings.length} 处问题（不影响其他内容显示）：</p><ul>${warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>`
+          : '<p class="muted">没有发现问题。</p>'}`;
+      if ($('#resetProgress')) $('#resetProgress').addEventListener('click', () => {
+        store.del(STORAGE_KEY);
+        setProgress(defaultPid);
+        $('#helpModal').hidden = true;
+      });
+    }
+    $('#helpBtn').addEventListener('click', () => { renderHelp(); $('#helpModal').hidden = false; });
+    $('#helpModal').addEventListener('click', e => { if (e.target.id === 'helpModal' || e.target.closest('[data-close]')) $('#helpModal').hidden = true; });
+
+    // ================= 总刷新 =================
+    function setProgress(pid) {
+      if (!actById.has(pid)) return;
+      state.pid = pid;
+      state.P = actById.get(pid).order;
+      store.set(STORAGE_KEY, pid);
+      refreshAll(true);
+    }
+    function refreshAll(progressChanged) {
+      V = computeVisible();
+      spoilerTokens = computeSpoilerTokens();
+      if (state.sel && !selectionVisible(state.sel)) state.sel = null;
+      if (state.fFaction && !V.facs.has(state.fFaction)) state.fFaction = '';
+      if (state.fNation && !V.locs.has(state.fNation)) state.fNation = '';
+      renderProgressSelect();
+      renderDataInfo();
+      renderFilters();
+      renderMap();
+      renderGraph(true);
+      renderTimeline();
+      renderGnosis();
+      refreshSelection();
+      if (progressChanged && state.tab === 'timeline') scrollTimelineToCurrent();
+    }
+
+    // ================= 开始 =================
+    let mapZoom = null, graphZoom = null;
+    $('#graphLegend').innerHTML = '<span class="hint">鼠标移到人物或连线上显示关系说明，放大后全部显示</span>' + REL_CATS.map(c => `<span><i class="ln" style="border-color:${c.color}"></i>${c.name}</span>`).join('')
+      + '<span><i class="ln dash" style="border-color:#7a86a6"></i>所属势力</span>'
+      + '<span><i class="shape c"></i>人物</span><span><i class="shape f"></i>势力</span><span><i class="shape l"></i>地点</span>'
+      + '<span><i class="shape c" style="background:none;border:1px dashed #ef6b6b"></i>愚人众执行官</span>';
+    setLayout(state.layout);
+    syncLayerButtons();
+    try { buildBaseMap(); } catch (err) { console.warn('底图绘制失败，只显示地点', err); }
+
+    mapZoom = makeZoom(mapSvg, mapVP, {
+      bounds: () => ({ x: -30, y: -10, w: MW + 100, h: MH + 20 }), // 右边多留一点，给稻妻的地名
+
+      onScale: applyMapScale,
+      onTap: target => { const el = target.closest && target.closest('[data-sel]'); if (el) select(el.getAttribute('data-sel')); },
+    });
+    graphZoom = makeZoom(graphSvg, graphVP, {
+      bounds: graphBounds,
+      onScale: updateGraphGeometry,
+      // 窗口形状变化很大时（比如切换版面、调整浏览器大小），重新铺开关系图
+      onResize: ({ w, h }) => {
+        if (!V || w < 50 || h < 50 || Math.abs(h / w - layoutAspect) < 0.15 * Math.max(layoutAspect, 0.1)) return false;
+        renderGraph(true); applyGraphHL(highlightSets());
+        return true;
+      },
+      grab: target => {
+        const el = target.closest && target.closest('.node');
+        const n = el && G.byEl.get(el);
+        if (!n) return null;
+        return { move(dx, dy) { n.x += dx; n.y += dy; updateGraphGeometry(); } };
+      },
+      onTap: target => { const el = target.closest && target.closest('[data-sel]'); if (el) select(el.getAttribute('data-sel')); },
+    });
+    refreshAll(false);
+    mapZoom.fit(false);
+    graphZoom.fit(false);
+    if (firstVisit) showFirstVisit();
+
+    function showFirstVisit() {
+      const box = document.createElement('div');
+      box.className = 'modal';
+      box.id = 'firstVisit';
+      let options = '', cur = null;
+      for (const a of acts) {
+        if (a.chapter !== cur) {
+          if (cur !== null) options += '</optgroup>';
+          const ch = chapterById.get(a.chapter);
+          options += `<optgroup label="${esc(ch ? ch.title : chapterShort(a.chapter))}">`;
+          cur = a.chapter;
+        }
+        options += `<option value="${esc(a.id)}"${a.id === defaultPid ? ' selected' : ''}>${esc(actFull(a))} · ${esc(a.version || '')}</option>`;
+      }
+      options += '</optgroup>';
+      box.innerHTML = `<div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="firstVisitTitle">
+          <h2 id="firstVisitTitle">你玩到哪一幕了？</h2>
+          <p>这张地图会按你的进度把后面的剧情藏起来，防止剧透。请选你目前打到的那一幕：这一幕和之前的内容会显示，之后的都不显示。</p>
+          <p><select id="firstVisitSelect" class="wide-select">${options}</select></p>
+          <p class="small muted">以后可以在页面顶部「我玩到了」随时修改。选好后会记在这台设备上，下次打开不用再选。</p>
+          <p><button class="btn primary" id="firstVisitGo">开始看地图</button></p>
+        </div>`;
+      document.body.appendChild(box);
+      $('#firstVisitGo').addEventListener('click', () => {
+        const pid = $('#firstVisitSelect').value;
+        box.remove();
+        setProgress(pid);
+      });
+    }
+  }
+})();
+
+</script>
+</body>
+</html>
